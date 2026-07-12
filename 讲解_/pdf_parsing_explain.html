@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pdf_parsing.py — 核心逻辑讲解</title>
+    <style>
+      /* ═══════════════════ CSS 变量系统 ═══════════════════ */
+      :root {
+        --bg: #0d1117;
+        --card-bg: #161b22;
+        --border: #30363d;
+        --text: #c9d1d9;
+        --text-secondary: #8b949e;
+        --accent: #58a6ff;
+        --green: #3fb950;
+        --orange: #d2991d;
+        --purple: #a371f7;
+        --red: #f85149;
+        --cyan: #39d2c0;
+      }
+
+      /* ═══════════════════ 全局样式 ═══════════════════ */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        line-height: 1.7;
+        min-height: 100vh;
+      }
+
+      /* ═══════════════════ 布局容器 ═══════════════════ */
+      .wrapper {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* ── 侧边栏目录 ── */
+      .toc-sidebar {
+        width: 260px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        background: rgba(22, 27, 34, 0.95);
+        border-right: 1px solid var(--border);
+        padding: 24px 16px;
+        backdrop-filter: blur(8px);
+        z-index: 10;
+      }
+      .toc-sidebar h3 {
+        font-size: 0.85em;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+      }
+      .toc-legend {
+        display: flex;
+        gap: 12px;
+        font-size: 0.65em;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+      }
+      .toc-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+      }
+      .toc-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .toc-list a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.82em;
+        transition: all 0.2s;
+      }
+      .toc-list a:hover {
+        background: rgba(88, 166, 255, 0.08);
+        color: var(--text);
+      }
+      .toc-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 22px;
+        border-radius: 4px;
+        font-size: 0.75em;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-secondary);
+      }
+      .prio-fire {
+        font-size: 0.7em;
+        margin-left: 3px;
+        flex-shrink: 0;
+        animation: prioPulse 2s ease-in-out infinite;
+      }
+      .prio-star {
+        font-size: 0.7em;
+        margin-left: 3px;
+        flex-shrink: 0;
+      }
+      @keyframes prioPulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.7;
+          transform: scale(1.15);
+        }
+      }
+
+      /* ── 主内容区 ── */
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ═══════════════════ Hero 区 ═══════════════════ */
+      .hero {
+        text-align: center;
+        padding: 80px 20px 60px;
+        background: radial-gradient(
+            ellipse at 50% 0%,
+            rgba(88, 166, 255, 0.12) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at 80% 100%,
+            rgba(163, 113, 247, 0.08) 0%,
+            transparent 50%
+          );
+      }
+      .hero .icon {
+        font-size: 64px;
+        filter: drop-shadow(0 0 30px rgba(88, 166, 255, 0.3));
+        animation: heroFloat 3s ease-in-out infinite;
+      }
+      @keyframes heroFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      .hero h1 {
+        font-size: 2.8em;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin: 16px 0 8px;
+        background: linear-gradient(
+          135deg,
+          var(--accent),
+          var(--purple),
+          var(--cyan)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero .subtitle {
+        font-size: 1.15em;
+        color: var(--text-secondary);
+        opacity: 0.75;
+      }
+      .tag-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+        justify-content: center;
+      }
+      .tag {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 0.82em;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+      }
+
+      /* ═══════════════════ 卡片 ═══════════════════ */
+      .card {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.025) 0%,
+          rgba(255, 255, 255, 0.01) 100%
+        );
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 18px;
+        padding: 40px 36px;
+        margin-bottom: 40px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25),
+          0 0 1px rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(4px);
+      }
+      .card h2 {
+        font-size: 1.55em;
+        font-weight: 750;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .card h3 {
+        font-size: 1.2em;
+        font-weight: 650;
+        color: var(--accent);
+        margin: 20px 0 12px;
+      }
+      .card .desc {
+        font-size: 1em;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin-bottom: 18px;
+      }
+
+      /* ── 徽章 ── */
+      .badge {
+        font-size: 0.55em;
+        padding: 3px 10px;
+        border-radius: 10px;
+        font-weight: 600;
+        letter-spacing: 0.8px;
+        vertical-align: middle;
+      }
+      .badge-blue {
+        background: rgba(88, 166, 255, 0.15);
+        color: var(--accent);
+      }
+      .badge-green {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--green);
+      }
+      .badge-orange {
+        background: rgba(210, 153, 29, 0.15);
+        color: var(--orange);
+      }
+      .badge-purple {
+        background: rgba(163, 113, 247, 0.15);
+        color: var(--purple);
+      }
+      .badge-red {
+        background: rgba(248, 81, 73, 0.15);
+        color: var(--red);
+      }
+      .badge-cyan {
+        background: rgba(57, 210, 192, 0.15);
+        color: var(--cyan);
+      }
+
+      /* ── 装饰条 ── */
+      .accent-bar {
+        width: 60px;
+        height: 4px;
+        border-radius: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--purple));
+        margin: 8px 0 20px;
+      }
+
+      /* ═══════════════════ 代码块 ═══════════════════ */
+      .code-block {
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin: 16px 0;
+        overflow: hidden;
+      }
+      .code-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        background: #161b22;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.8em;
+        color: var(--text-secondary);
+      }
+      .code-header .lang {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .code-block pre {
+        padding: 16px 20px;
+        margin: 0;
+        overflow-x: auto;
+        font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+        font-size: 0.85em;
+        line-height: 1.65;
+        color: var(--text);
+      }
+      .code-block pre .c1 {
+        color: #6e7681;
+      } /* comment */
+      .code-block pre .k {
+        color: var(--red);
+      } /* keyword */
+      .code-block pre .nf {
+        color: var(--purple);
+      } /* function name */
+      .code-block pre .s {
+        color: var(--green);
+      } /* string */
+      .code-block pre .n {
+        color: var(--cyan);
+      } /* name */
+      .code-block pre .kn {
+        color: var(--red);
+      }
+      .code-block pre .o {
+        color: var(--accent);
+      }
+      .code-block pre .bp {
+        color: var(--orange);
+      }
+
+      /* ═══════════════════ 图解说明 / 高亮 ═══════════════════ */
+      .explain-box {
+        background: rgba(57, 210, 192, 0.05);
+        border: 1px solid rgba(57, 210, 192, 0.15);
+        border-left: 4px solid var(--cyan);
+        border-radius: 0 12px 12px 0;
+        padding: 22px 24px;
+        margin: 20px 0;
+      }
+      .explain-box .explain-title {
+        font-weight: 700;
+        color: var(--cyan);
+        margin-bottom: 10px;
+        font-size: 0.95em;
+      }
+      .explain-box ul {
+        padding-left: 18px;
+      }
+      .explain-box li {
+        margin-bottom: 6px;
+        line-height: 1.7;
+      }
+      .explain-box strong {
+        color: var(--text);
+      }
+      .explain-box code {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+
+      .highlight {
+        border-left: 4px solid var(--accent);
+        border-radius: 0 12px 12px 0;
+        padding: 18px 22px;
+        margin: 20px 0;
+        background: rgba(88, 166, 255, 0.05);
+        border-color: rgba(88, 166, 255, 0.2);
+      }
+      .highlight.warn {
+        border-color: rgba(248, 81, 73, 0.4);
+        background: rgba(248, 81, 73, 0.05);
+      }
+      .highlight.tip {
+        border-color: rgba(63, 185, 80, 0.4);
+        background: rgba(63, 185, 80, 0.05);
+      }
+
+      /* ═══════════════════ 架构图 ═══════════════════ */
+      .arch-diagram {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        align-items: center;
+        margin: 20px 0;
+      }
+      .arch-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+      }
+      .arch-node {
+        background: var(--card-bg);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 20px;
+        text-align: center;
+        min-width: 120px;
+        font-size: 0.9em;
+      }
+      .arch-node.core {
+        border-color: var(--accent);
+        background: rgba(88, 166, 255, 0.08);
+      }
+      .arch-node.green {
+        border-color: var(--green);
+        background: rgba(63, 185, 80, 0.06);
+      }
+      .arch-node.purple {
+        border-color: var(--purple);
+        background: rgba(163, 113, 247, 0.06);
+      }
+      .arch-node.orange {
+        border-color: var(--orange);
+        background: rgba(210, 153, 29, 0.06);
+      }
+      .arch-arrow {
+        color: var(--text-secondary);
+        font-size: 20px;
+        text-align: center;
+      }
+      .arch-arrow-down {
+        display: block;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 24px;
+        margin: 4px 0;
+      }
+
+      /* ═══════════════════ info-grid / info-item ═══════════════════ */
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin: 20px 0;
+      }
+      .info-item {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        padding: 22px 18px;
+        text-align: center;
+        backdrop-filter: blur(4px);
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      }
+      .info-item:hover {
+        transform: translateY(-2px);
+        border-color: rgba(88, 166, 255, 0.25);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      }
+      .info-item .label {
+        font-size: 0.78em;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .info-item .value {
+        font-size: 1.2em;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      /* ═══════════════════ func-card ═══════════════════ */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin: 16px 0;
+      }
+      @media (max-width: 700px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+      }
+      .func-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+      }
+      .func-card h4 {
+        font-size: 1em;
+        margin-bottom: 6px;
+        color: var(--accent);
+      }
+      .func-card p {
+        font-size: 0.88em;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+      .func-card code {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+      .func-card.orange {
+        border-left-color: var(--orange);
+      }
+      .func-card.orange h4 {
+        color: var(--orange);
+      }
+      .func-card.green {
+        border-left-color: var(--green);
+      }
+      .func-card.green h4 {
+        color: var(--green);
+      }
+      .func-card.purple {
+        border-left-color: var(--purple);
+      }
+      .func-card.purple h4 {
+        color: var(--purple);
+      }
+
+      /* ═══════════════════ step-row ═══════════════════ */
+      .step-row {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        margin: 12px 0;
+      }
+      .step-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85em;
+        color: #fff;
+        background: var(--accent);
+      }
+      .step-badge.s2 {
+        background: var(--purple);
+      }
+      .step-badge.s3 {
+        background: var(--green);
+      }
+      .step-badge.s4 {
+        background: var(--orange);
+      }
+      .step-badge.s5 {
+        background: var(--cyan);
+      }
+      .step-content {
+        flex: 1;
+      }
+      .step-content strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+      .step-content p {
+        font-size: 0.88em;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      /* ═══════════════════ 表格 ═══════════════════ */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 0.9em;
+      }
+      .data-table th {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 10px 14px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--accent);
+        border-bottom: 2px solid var(--border);
+      }
+      .data-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-secondary);
+      }
+      .data-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .data-table code {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 0.9em;
+        color: var(--accent);
+      }
+
+      /* ═══════════════════ Footer ═══════════════════ */
+      footer {
+        text-align: center;
+        padding: 30px 20px;
+        border-top: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: 0.82em;
+        margin-top: 20px;
+      }
+
+      /* ═══════════════════ 分隔线 ═══════════════════ */
+      .slide-divider {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 12px 0 24px;
+        opacity: 0.4;
+      }
+      .slide-divider::before,
+      .slide-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border),
+          transparent
+        );
+      }
+      .slide-divider .divider-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- ═══════════════════ 侧边栏目录 ═══════════════════ -->
+      <nav class="toc-sidebar">
+        <h3>📑 目录导航</h3>
+        <div class="toc-legend">
+          <span>🔥 = 核心必读</span>
+          <span>⭐ = 重要</span>
+        </div>
+        <div class="toc-list">
+          <a href="#ch0"
+            ><span class="toc-num">〇</span>架构索引<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f1"
+            ><span class="toc-num">①</span>_process_chunk<span class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f2"
+            ><span class="toc-num">②</span>PDFParser.__init__<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f3"><span class="toc-num">③</span>_parse_csv_metadata</a>
+          <a href="#f4"
+            ><span class="toc-num">④</span>_create_document_converter<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f5"
+            ><span class="toc-num">⑤</span>convert_documents<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f6"
+            ><span class="toc-num">⑥</span>process_documents<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f7"
+            ><span class="toc-num">⑦</span>_normalize_page_sequence<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f8"
+            ><span class="toc-num">⑧</span>parse_and_export<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f9"
+            ><span class="toc-num">⑨</span>parse_and_export_parallel<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f10"
+            ><span class="toc-num">⑩</span>JsonReportProcessor.__init__</a
+          >
+          <a href="#f11"
+            ><span class="toc-num">⑪</span>assemble_report<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f12"
+            ><span class="toc-num">⑫</span>assemble_metainfo<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f13"><span class="toc-num">⑬</span>process_table</a>
+          <a href="#f14"><span class="toc-num">⑭</span>debug_data</a>
+          <a href="#f15"
+            ><span class="toc-num">⑮</span>expand_groups<span class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f16"
+            ><span class="toc-num">⑯</span>_process_text_reference<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f17"
+            ><span class="toc-num">⑰</span>assemble_content<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f18"
+            ><span class="toc-num">⑱</span>assemble_tables<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f19"
+            ><span class="toc-num">⑲</span>_table_to_md<span class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f20"
+            ><span class="toc-num">⑳</span>assemble_pictures<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f21"
+            ><span class="toc-num">㉑</span>_process_picture_block</a
+          >
+        </div>
+      </nav>
+
+      <!-- ═══════════════════ 主内容区 ═══════════════════ -->
+      <div class="main">
+        <div class="container">
+          <!-- Hero -->
+          <div class="hero">
+            <div class="icon">📄</div>
+            <h1>pdf_parsing.py — 逐函数详解</h1>
+            <p class="subtitle">
+              21个 def 函数 · 逐个讲解 · 新手友好 · 从零理解 PDF 解析全流程
+            </p>
+            <div class="tag-row">
+              <span class="tag">📄 PDF 解析</span>
+              <span class="tag">🧠 Docling</span>
+              <span class="tag">📊 表格提取</span>
+              <span class="tag">🖼️ 图片处理</span>
+              <span class="tag">⚡ 并行加速</span>
+              <span class="tag">🔄 JSON 序列化</span>
+              <span class="tag">🔍 OCR 识别</span>
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 〇、整体架构与函数索引 ═══════ -->
+          <div class="card" id="ch0">
+            <h2>
+              🗺️ 〇、整体架构与函数索引
+              <span class="badge badge-blue">OVERVIEW</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <p class="desc">
+              本模块共有 <strong>21 个函数</strong>（含构造函数），分属
+              <strong>2 个类 + 1 个独立函数</strong>。
+              下面这张调用关系图展示了它们之间<strong>"谁调用谁"</strong>，看完你就能理解整个数据流动。
+            </p>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang"
+                  >📐 函数调用关系图（按执行顺序从上到下）</span
+                >
+              </div>
+              <pre>
+┌─────────────────────────────────────────────────────┐
+│  入口：parse_and_export()  或  parse_and_export_parallel()  │
+└──────────┬────────────────────┬─────────────────────┘
+           │                    │
+     【串行模式】           【并行模式】
+           │                    │
+           ▼                    ▼
+   convert_documents()    ProcessPoolExecutor
+           │               │
+           ▼               ├─→ _process_chunk() ──→ parse_and_export()
+   process_documents()     │       (子进程)            (子进程内部)
+           │               │
+           ├─→ _normalize_page_sequence()
+           │
+           └─→ JsonReportProcessor.assemble_report()
+                    │
+                    ├─→ assemble_metainfo()
+                    ├─→ assemble_content()
+                    │      ├─→ expand_groups()
+                    │      └─→ _process_text_reference()
+                    ├─→ assemble_tables()
+                    │      └─→ _table_to_md()
+                    ├─→ assemble_pictures()
+                    │      └─→ _process_picture_block()
+                    │             └─→ _process_text_reference()
+                    └─→ debug_data()
+              </pre>
+            </div>
+
+            <h3>📋 函数索引（点击跳转）</h3>
+            <table class="data-table">
+              <tr>
+                <th>#</th>
+                <th>函数名</th>
+                <th>所属</th>
+                <th>一句话作用</th>
+                <th>优先级</th>
+
+              <tr>
+                <td>①</td>
+                <td>
+                  <a href="#f1"><code>_process_chunk</code></a>
+                </td>
+                <td>模块级</td>
+                <td>子进程中处理一批 PDF</td>
+                <td>⭐</td>
+
+              <tr>
+                <td>②</td>
+                <td>
+                  <a href="#f2"><code>PDFParser.__init__</code></a>
+                </td>
+                <td>PDFParser</td>
+                <td>初始化解析器，创建 Docling 引擎</td>
+                <td>🔥</td>
+
+              <tr>
+                <td>③</td>
+                <td>
+                  <a href="#f3"><code>_parse_csv_metadata</code></a>
+                </td>
+                <td>PDFParser</td>
+                <td>读取 CSV 获取公司名</td>
+                <td>—</td>
+
+              <tr>
+                <td>④</td>
+                <td>
+                  <a href="#f4"><code>_create_document_converter</code></a>
+                </td>
+                <td>PDFParser</td>
+                <td>配置 Docling 引擎参数</td>
+                <td>🔥</td>
+
+              <tr>
+                <td>⑤</td>
+                <td>
+                  <a href="#f5"><code>convert_documents</code></a>
+                </td>
+                <td>PDFParser</td>
+                <td>批量转换 PDF → Docling 对象</td>
+                <td>⭐</td>
+
+              <tr>
+                <td>⑥</td>
+                <td>
+                  <a href="#f6"><code>process_documents</code></a>
+                </td>
+                <td>PDFParser</td>
+                <td>处理转换结果，调用组装器保存 JSON</td>
+                <td>🔥</td>
+
+              <tr>
+                <td>⑦</td>
+                <td>
+                  <a href="#f7"><code>_normalize_page_sequence</code></a>
+                </td>
+                <td>PDFParser</td>
+                <td>填补缺失页码，保证连续</td>
+                <td>⭐</td>
+
+              <tr>
+                <td>⑧</td>
+                <td>
+                  <a href="#f8"><code>parse_and_export</code></a>
+                </td>
+                <td>PDFParser</td>
+                <td>串行解析入口（一个一个处理）</td>
+                <td>🔥</td>
+
+              <tr>
+                <td>⑨</td>
+                <td>
+                  <a href="#f9"><code>parse_and_export_parallel</code></a>
+                </td>
+                <td>PDFParser</td>
+                <td>并行解析入口（多进程同时处理）</td>
+                <td>🔥</td>
+
+              <tr>
+                <td>⑩</td>
+                <td>
+                  <a href="#f10"><code>JsonReportProcessor.__init__</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>初始化报告处理器</td>
+                <td>—</td>
+
+              <tr>
+                <td>⑪</td>
+                <td>
+                  <a href="#f11"><code>assemble_report</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>报告组装总入口（调4个子方法）</td>
+                <td>🔥</td>
+
+              <tr>
+                <td>⑫</td>
+                <td>
+                  <a href="#f12"><code>assemble_metainfo</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>提取页数、文本数、公司名等</td>
+                <td>⭐</td>
+
+              <tr>
+                <td>⑬</td>
+                <td>
+                  <a href="#f13"><code>process_table</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>占位方法，当前未使用</td>
+                <td>—</td>
+
+              <tr>
+                <td>⑭</td>
+                <td>
+                  <a href="#f14"><code>debug_data</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>保存原始数据用于调试</td>
+                <td>—</td>
+
+              <tr>
+                <td>⑮</td>
+                <td>
+                  <a href="#f15"><code>expand_groups</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>将嵌套列表结构"拍平"</td>
+                <td>⭐</td>
+
+              <tr>
+                <td>⑯</td>
+                <td>
+                  <a href="#f16"><code>_process_text_reference</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>解析文本引用，构建标准内容项</td>
+                <td>⭐</td>
+
+              <tr>
+                <td>⑰</td>
+                <td>
+                  <a href="#f17"><code>assemble_content</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>核心：按页码重组所有内容</td>
+                <td>🔥</td>
+
+              <tr>
+                <td>⑱</td>
+                <td>
+                  <a href="#f18"><code>assemble_tables</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>表格三格式（MD/HTML/JSON）输出</td>
+                <td>🔥</td>
+
+              <tr>
+                <td>⑲</td>
+                <td>
+                  <a href="#f19"><code>_table_to_md</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>grid 数据 → Markdown 表格</td>
+                <td>⭐</td>
+
+              <tr>
+                <td>⑳</td>
+                <td>
+                  <a href="#f20"><code>assemble_pictures</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>提取图片位置和关联文本</td>
+                <td>⭐</td>
+
+              <tr>
+                <td>㉑</td>
+                <td>
+                  <a href="#f21"><code>_process_picture_block</code></a>
+                </td>
+                <td>JsonReportProcessor</td>
+                <td>处理图片内部的文本引用</td>
+                <td>—</td>
+
+            </table>
+
+            <div class="highlight tip">
+              <strong>👶 新手阅读建议：</strong>按优先级阅读——先读
+              🔥（6个核心函数），再读 ⭐（9个重要函数），最后读
+              —（6个辅助函数）。 每个函数卡片都包含
+              <strong>"这个函数做什么"</strong>（大白话解释）、<strong
+                >"关键代码逻辑"</strong
+              >
+              和 <strong>"它在流程中的位置"</strong> 三个部分。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ① _process_chunk ═══════ -->
+          <div class="card" id="f1">
+            <h2>
+              ① <code>_process_chunk()</code> — 模块级函数
+              <span class="badge badge-cyan">PARALLEL HELPER</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              当启用<strong>并行模式</strong>时，主进程会把 PDF
+              文件分成好几堆（chunk），
+              然后<strong>每堆交给一个子进程去处理</strong>。
+              这个函数就是<strong>子进程的"工作任务"</strong>——它在子进程里创建一个新的
+              PDFParser， 调用串行解析方法处理分配给它的那堆 PDF。
+            </p>
+
+            <div class="explain-box">
+              <div class="explain-title">
+                💡 为什么必须是模块级函数（不能写成类方法）？
+              </div>
+              <ul>
+                <li>
+                  Python 的 <code>ProcessPoolExecutor</code> 需要把任务函数
+                  <strong>pickle（序列化）</strong> 后传给子进程
+                </li>
+                <li>
+                  <strong>类成员方法无法被 pickle</strong
+                  >，所以必须写成模块级的独立函数
+                </li>
+                <li>
+                  每个子进程有自己独立的 Python 解释器，所以可以各自创建自己的
+                  PDFParser 实例
+                </li>
+              </ul>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def _process_chunk(pdf_paths, pdf_backend, output_dir, num_threads, metadata_lookup, debug_data_path):
+    """辅助函数：在独立的子进程中处理一批 PDF 文件"""
+    parser = PDFParser(pdf_backend=pdf_backend, output_dir=output_dir,
+                       num_threads=num_threads, csv_metadata_path=None)
+    parser.metadata_lookup = metadata_lookup  # 从主进程"继承"元数据
+    parser.debug_data_path = debug_data_path
+    parser.parse_and_export(pdf_paths)        # 调用串行方法处理这批 PDF
+    return f"Processed {len(pdf_paths)} PDFs."</pre
+              >
+            </div>
+
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 只在
+              <code>parse_and_export_parallel()</code> 中被调用 → 作为
+              <code>executor.submit()</code> 的任务函数
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ② PDFParser.__init__ ═══════ -->
+          <div class="card" id="f2">
+            <h2>
+              ② <code>PDFParser.__init__()</code> — 构造函数
+              <span class="badge badge-orange">INIT</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              当你 <code>parser = PDFParser(...)</code> 时，这个函数自动执行。
+              <strong>它做了三件事</strong>：① 创建 Docling
+              文档转换器（核心引擎）； ② 如果给了 CSV
+              文件，解析出公司名映射表；③ 设置 CPU 线程数。
+              本质上就是<strong>"把解析引擎准备好，随时可以开工"</strong>。
+            </p>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+class PDFParser:
+    def __init__(self, pdf_backend=DoclingParseV2DocumentBackend,
+                 output_dir: Path = Path("./parsed_pdfs"),
+                 num_threads: int = None, csv_metadata_path: Path = None):
+        self.doc_converter = self._create_document_converter()  # 🔑 创建引擎
+        self.metadata_lookup = {}
+        if csv_metadata_path is not None:
+            self.metadata_lookup = self._parse_csv_metadata(csv_metadata_path)
+        if self.num_threads is not None:
+            os.environ["OMP_NUM_THREADS"] = str(self.num_threads)  # 控制OCR线程</pre
+              >
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="label">pdf_backend</div>
+                <div class="value">PDF 解析后端（默认 V2）</div>
+              </div>
+              <div class="info-item">
+                <div class="label">output_dir</div>
+                <div class="value">JSON 输出目录</div>
+              </div>
+              <div class="info-item">
+                <div class="label">num_threads</div>
+                <div class="value">OCR 线程数</div>
+              </div>
+              <div class="info-item">
+                <div class="label">csv_metadata_path</div>
+                <div class="value">公司名 CSV（可选）</div>
+              </div>
+            </div>
+
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>
+              无论是串行还是并行模式，<strong
+                >第一步就是创建 PDFParser 实例</strong
+              >，即调用此函数。它是整个模块的"启动按钮"。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ③ _parse_csv_metadata ═══════ -->
+          <div class="card" id="f3">
+            <h2>
+              ③ <code>_parse_csv_metadata()</code> — 静态方法
+              <span class="badge badge-purple">CSV</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              读一个 CSV 文件，里面有两列：<code>sha1</code>（PDF
+              的文件名哈希）和 <code>company_name</code>（公司名）。
+              把每一行转成
+              <code>{sha1: {company_name: "某公司"}}</code> 的字典，
+              这样后面处理 PDF 时就能根据文件名知道是哪个公司的年报。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+@staticmethod
+def _parse_csv_metadata(csv_path: Path) -> dict:
+    import csv
+    metadata_lookup = {}
+    with open(csv_path, 'r', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)  # 每行自动转为 {列名: 值}
+        for row in reader:
+            company_name = row.get('company_name', row.get('name', '')).strip('"')
+            metadata_lookup[row['sha1']] = {'company_name': company_name}
+    return metadata_lookup  # {"abc123...": {"company_name": "阿里巴巴"}}</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 在
+              <code>__init__</code> 中被调用（仅当传入了 CSV 路径时）。结果存入
+              <code>self.metadata_lookup</code>，后续
+              <code>assemble_metainfo()</code> 会用到。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ④ _create_document_converter ═══════ -->
+          <div class="card" id="f4">
+            <h2>
+              ④ <code>_create_document_converter()</code> — Docling 引擎配置
+              <span class="badge badge-orange">ENGINE</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              这是整个解析质量的<strong>"控制面板"</strong>。它创建一个 Docling
+              的 <code>DocumentConverter</code> 对象， 并配置好：<strong
+                >用哪个 OCR、要不要识别表格、表格精度多高</strong
+              >。 这些配置直接决定了解析出来的文字和表格准不准。
+            </p>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 五个核心配置（逐一解释）</span>
+              </div>
+              <pre>
+pipeline_options = PdfPipelineOptions()
+pipeline_options.do_ocr = True                           # ① 开启OCR，识别扫描件文字
+ocr_options = EasyOcrOptions(lang=['en'], force_full_page_ocr=False)  # ② 仅英文，不全页OCR
+pipeline_options.ocr_options = ocr_options
+pipeline_options.do_table_structure = True               # ③ 检测PDF中的表格
+pipeline_options.table_structure_options.do_cell_matching = True  # ④ 关联单元格和表头
+pipeline_options.table_structure_options.mode = TableFormerMode.ACCURATE  # ⑤ 精度优先</pre
+              >
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">📖 配置项详解（新手必读）</div>
+              <ul>
+                <li>
+                  <strong>① do_ocr=True：</strong
+                  >开启光学字符识别。如果PDF是扫描件（图片格式），没有这行就读不出文字
+                </li>
+                <li>
+                  <strong>② force_full_page_ocr=False：</strong
+                  >不全页OCR。Docling会先提取PDF中已嵌入的文字（如Word转的PDF），只有图片区域才用OCR。<strong
+                    >这样速度更快</strong
+                  >
+                </li>
+                <li>
+                  <strong>③ do_table_structure=True：</strong
+                  >检测PDF中哪里有表格，识别哪些单元格属于同一个表
+                </li>
+                <li>
+                  <strong>④ do_cell_matching=True：</strong
+                  >把表格单元格和它的表头对应起来（如知道"100亿"属于"2024年营收"列）
+                </li>
+                <li>
+                  <strong>⑤ ACCURATE模式：</strong
+                  >用TableFormer深度学习模型做表格识别，准确率高但速度较慢。年报财务报表<strong
+                    >精度比速度更重要</strong
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>在
+              <code>__init__</code> 中被调用，创建的
+              <code>doc_converter</code> 被
+              <code>convert_documents()</code> 使用。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑤ convert_documents ═══════ -->
+          <div class="card" id="f5">
+            <h2>
+              ⑤ <code>convert_documents()</code> — 批量转换
+              <span class="badge badge-green">CONVERT</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              把一堆 PDF 文件路径扔给 Docling
+              引擎，<strong>引擎逐个解析</strong>，返回一个"结果流"。
+              注意它只是<strong>发起转换请求</strong>，真正的处理是<strong>惰性（lazy）</strong>的——当你开始遍历结果时才真正解析。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def convert_documents(self, input_doc_paths: List[Path]) -> Iterable[ConversionResult]:
+    conv_results = self.doc_converter.convert_all(source=input_doc_paths)
+    # convert_all 接受 PDF 路径列表，返回"可迭代对象"（惰性求值，省内存）
+    return conv_results</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>parse_and_export()</code> 调用。返回的结果传给
+              <code>process_documents()</code> 做进一步处理。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑥ process_documents ═══════ -->
+          <div class="card" id="f6">
+            <h2>
+              ⑥ <code>process_documents()</code> — 处理转换结果
+              <span class="badge badge-green">PROCESS</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              遍历 Docling 返回的转换结果，<strong>逐个文档</strong>做三件事： ①
+              导出 Docling 原始数据为字典；② 规整页码（填补缺失页）； ③ 调用
+              <code>JsonReportProcessor</code> 组装为自定义 JSON 并保存到文件。
+              <strong>任何一个 PDF 解析失败，整个流程报错停止</strong
+              >（零容忍策略）。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+for conv_res in conv_results:
+    if conv_res.status == ConversionStatus.SUCCESS:
+        processor = JsonReportProcessor(...)          # 每个文档独立一个处理器
+        data = conv_res.document.export_to_dict()     # Docling对象 → Python字典
+        normalized_data = self._normalize_page_sequence(data)  # 页码规整
+        processed_report = processor.assemble_report(conv_res, normalized_data)
+        # ... 保存为 {sha1_name}.json ...
+    else:
+        failure_count += 1
+if failure_count > 0:
+    raise RuntimeError("有文档解析失败！")  # 零容忍：一个失败就全停</pre
+              >
+            </div>
+            <div class="explain-box">
+              <div class="explain-title">📖 为什么要"零容忍"？</div>
+              <ul>
+                <li>下游的<strong>向量检索</strong>需要所有文档的索引</li>
+                <li>如果缺了某个文档，用户检索时就会漏掉关键信息</li>
+                <li>
+                  与其出错了还不知道，不如<strong>直接报错让开发者修复</strong>
+                </li>
+              </ul>
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>parse_and_export()</code> 调用。它串联了规范化 → 组装 →
+              保存的完整后处理链路。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑦ _normalize_page_sequence ═══════ -->
+          <div class="card" id="f7">
+            <h2>
+              ⑦ <code>_normalize_page_sequence()</code> — 页码规整
+              <span class="badge badge-purple">DEFENSE</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              Docling
+              有时会<strong>跳过完全空白的页面</strong>（比如年报中的空白分隔页），导致页码不连续。
+              这个函数检查"第1页到最后一页"之间是否缺页，<strong>缺了就补一个空页</strong>，
+              确保下游的 <code>text_splitter</code> 不会因为缺页编号而崩溃。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+existing_pages = {page['page'] for page in data['content']}  # 收集所有存在的页码
+max_page = max(existing_pages)                                # 最大页码
+for page_num in range(1, max_page + 1):                       # 从1到最大页
+    page_content = next(
+        (page for page in data['content'] if page['page'] == page_num),  # 找这一页
+        {"page": page_num, "content": [], "page_dimensions": {}}         # 找不到就补空页
+    )
+    new_content.append(page_content)</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 在
+              <code>process_documents()</code> 中、<code>export_to_dict()</code>
+              之后立即调用。结果传给 <code>assemble_report()</code>。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑧ parse_and_export ═══════ -->
+          <div class="card" id="f8">
+            <h2>
+              ⑧ <code>parse_and_export()</code> — 串行解析入口
+              <span class="badge badge-orange">ENTRY</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              这是<strong>串行模式</strong>的入口函数——把 PDF
+              文件<strong>一个接一个</strong>地解析。 它调用
+              <code>convert_documents</code> →
+              <code>process_documents</code> 完成全流程。 如果任何一个 PDF
+              解析失败，<strong>抛异常停止</strong>（零容忍）。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def parse_and_export(self, input_doc_paths=None, doc_dir=None):
+    start_time = time.time()                                # 开始计时
+    if input_doc_paths is None and doc_dir is not None:
+        input_doc_paths = list(doc_dir.glob("*.pdf"))       # 从目录收集PDF
+
+    conv_results = self.convert_documents(input_doc_paths)  # 步骤1：Docling转换
+    success_count, failure_count = self.process_documents(conv_results)  # 步骤2：处理+保存
+
+    if failure_count > 0:
+        raise RuntimeError(f"Failed converting {failure_count} documents.")
+    _log.info(f"Completed in {elapsed_time:.2f} seconds.")</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>
+              用户直接调用的入口函数。如果 PDF
+              数量不多（<10个），用这个就够了。内部调用 convert_documents →
+              process_documents。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑨ parse_and_export_parallel ═══════ -->
+          <div class="card" id="f9">
+            <h2>
+              ⑨ <code>parse_and_export_parallel()</code> — 并行解析入口
+              <span class="badge badge-cyan">PARALLEL ENTRY</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              这是<strong>并行模式</strong>的入口——当 PDF
+              很多时（比如100份年报），串行太慢。 它把 PDF 列表<strong
+                >切分成几个 chunk</strong
+              >，用
+              <code>ProcessPoolExecutor</code>
+              启动多个<strong>独立子进程</strong>同时解析。每个子进程运行
+              <code>_process_chunk()</code>。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码 — 三步并行策略</span>
+              </div>
+              <pre>
+# 步骤1：计算最优参数
+cpu_count = multiprocessing.cpu_count()
+optimal_workers = min(cpu_count, total_pdfs)          # 进程数 ≤ CPU核心数
+chunk_size = max(1, total_pdfs // optimal_workers)     # 每个进程处理几个PDF
+
+# 步骤2：切分PDF列表
+chunks = [input_doc_paths[i:i+chunk_size] for i in range(0, total_pdfs, chunk_size)]
+
+# 步骤3：提交到进程池并行执行
+with ProcessPoolExecutor(max_workers=optimal_workers) as executor:
+    futures = [executor.submit(_process_chunk, chunk, ...) for chunk in chunks]
+    for future in as_completed(futures):
+        result = future.result()  # 哪个chunk先完成就先处理哪个</pre
+              >
+            </div>
+            <div class="explain-box">
+              <div class="explain-title">📖 并行策略详解</div>
+              <ul>
+                <li>
+                  <strong>optimal_workers = min(CPU核心数, PDF总数)：</strong
+                  >16核机器处理100个PDF → 16个进程，每个处理约6-7个
+                </li>
+                <li>
+                  <strong>为什么用多进程而不是多线程？</strong
+                  >PDF解析是CPU密集型，Python的GIL锁会让多线程等于单线程。多进程每个进程有独立Python解释器，<strong
+                    >真正并行</strong
+                  >
+                </li>
+                <li>
+                  <strong>as_completed 实时追踪：</strong
+                  >不按提交顺序等待，哪个进程先跑完就先报告进度
+                </li>
+              </ul>
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>
+              用户直接调用的并行入口。内部通过 ProcessPoolExecutor →
+              _process_chunk → parse_and_export 完成解析。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑩ JsonReportProcessor.__init__ ═══════ -->
+          <div class="card" id="f10">
+            <h2>
+              ⑩ <code>JsonReportProcessor.__init__()</code> — 构造函数
+              <span class="badge badge-purple">INIT</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              非常简单——<strong>保存两个参数</strong>：<code>metadata_lookup</code>（公司名映射表）和
+              <code>debug_data_path</code>（调试输出路径）。
+              这两个参数会在后续的 <code>assemble_metainfo</code> 和
+              <code>debug_data</code> 中用到。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+class JsonReportProcessor:
+    def __init__(self, metadata_lookup: dict = None, debug_data_path: Path = None):
+        self.metadata_lookup = metadata_lookup or {}  # 空字典兜底，避免None
+        self.debug_data_path = debug_data_path</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 在
+              <code>process_documents()</code>
+              中，每个文档处理前创建。每个文档一个独立实例，避免状态污染。
+            </div>
+          </div>
+          <!-- ═══════ ⑪ assemble_report ═══════ -->
+          <div class="card" id="f11">
+            <h2>
+              ⑪ <code>assemble_report()</code> — 报告组装总入口
+              <span class="badge badge-purple">ASSEMBLY</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              这是 JsonReportProcessor
+              的<strong>总调度函数</strong>——它不亲自干活，
+              而是<strong>调用5个子函数</strong>（metainfo、content、tables、pictures、debug），
+              把各自的返回值拼成一个大字典。就像<strong>车间主任：分配任务给4个工人，最后汇总成果</strong>。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码 — 五个组装步骤</span>
+              </div>
+              <pre>
+def assemble_report(self, conv_result, normalized_data=None):
+    data = normalized_data if normalized_data is not None else conv_result.document.export_to_dict()
+    assembled_report = {}
+    assembled_report['metainfo']  = self.assemble_metainfo(data)   # ① 元数据
+    assembled_report['content']   = self.assemble_content(data)    # ② 逐页内容
+    assembled_report['tables']    = self.assemble_tables(          # ③ 表格
+        conv_result.document.tables, data)
+    assembled_report['pictures']  = self.assemble_pictures(data)   # ④ 图片
+    self.debug_data(data)                                          # ⑤ 调试快照
+    return assembled_report</pre
+              >
+            </div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="label">① metainfo</div>
+                <div class="value">页数、文本数、公司名</div>
+              </div>
+              <div class="info-item">
+                <div class="label">② content</div>
+                <div class="value">按页码组织的所有内容</div>
+              </div>
+              <div class="info-item">
+                <div class="label">③ tables</div>
+                <div class="value">MD+HTML+JSON三格式</div>
+              </div>
+              <div class="info-item">
+                <div class="label">④ pictures</div>
+                <div class="value">图片位置+关联文本</div>
+              </div>
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>process_documents()</code> 调用。是整个 JsonReportProcessor
+              的入口。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑫ assemble_metainfo ═══════ -->
+          <div class="card" id="f12">
+            <h2>
+              ⑫ <code>assemble_metainfo()</code> — 元数据提取
+              <span class="badge badge-green">META</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              从 Docling
+              解析结果中<strong>数一数</strong>：有多少页、多少段文字、多少表格、多少图片。
+              然后从 CSV 元数据中<strong>查出公司名</strong>（通过 sha1
+              文件名匹配）。 这些信息存在 JSON 的
+              <code>metainfo</code> 字段中，供下游检索使用。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def assemble_metainfo(self, data):
+    metainfo = {}
+    sha1_name = data['origin']['filename'].rsplit('.', 1)[0]  # 去掉.pdf后缀
+    metainfo['sha1_name'] = sha1_name
+    metainfo['pages_amount'] = len(data.get('pages', []))        # 页数
+    metainfo['text_blocks_amount'] = len(data.get('texts', []))   # 文本块数
+    metainfo['tables_amount'] = len(data.get('tables', []))       # 表格数
+    metainfo['pictures_amount'] = len(data.get('pictures', []))   # 图片数
+
+    # 通过sha1文件名匹配CSV中的公司名
+    if self.metadata_lookup and sha1_name in self.metadata_lookup:
+        metainfo['company_name'] = self.metadata_lookup[sha1_name]['company_name']
+    return metainfo</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>assemble_report()</code> 第一个调用。输出存入 JSON 的
+              <code>metainfo</code> 字段。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑬ process_table ═══════ -->
+          <div class="card" id="f13">
+            <h2>
+              ⑬ <code>process_table()</code> — 占位方法
+              <span class="badge badge-red">PLACEHOLDER</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              这只是一个<strong>预留接口</strong>——当前代码中它只返回一个占位字符串
+              <code>'processed_table_content'</code>，
+              实际并未被调用。保留它是为了以后可能需要的<strong>表格自定义处理逻辑</strong>。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def process_table(self, table_data):
+    # 表格处理占位方法（预留接口，当前返回占位字符串）
+    return 'processed_table_content'</pre
+              >
+            </div>
+            <div class="highlight warn">
+              <strong>⚠️ 注意：</strong> 当前未使用。实际的表格处理在
+              <code>assemble_tables()</code> 中完成。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑭ debug_data ═══════ -->
+          <div class="card" id="f14">
+            <h2>
+              ⑭ <code>debug_data()</code> — 调试输出
+              <span class="badge badge-purple">DEBUG</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              如果设置了 <code>debug_data_path</code>（调试路径），就把 Docling
+              的<strong>完整原始字典</strong>保存为 JSON 文件。
+              这是调试解析质量的"黄金数据源"——包含所有元数据、坐标、置信度等底层信息。
+              如果没设置调试路径，函数直接跳过，什么也不做。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def debug_data(self, data):
+    if self.debug_data_path is None:              # 没配置调试路径 → 跳过
+        return
+    doc_name = data['name']
+    path = self.debug_data_path / f"{doc_name}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)  # 保存完整原始数据</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 在
+              <code>assemble_report()</code> 最后调用，仅当用户配置了
+              debug_data_path 才生效。
+            </div>
+          </div>
+          <!-- ═══════ ⑮ expand_groups ═══════ -->
+          <div class="card" id="f15">
+            <h2>
+              ⑮ <code>expand_groups()</code> — 展开分组结构
+              <span class="badge badge-purple">UTILITY</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              Docling 会把 PDF 中的<strong>列表项</strong>（如项目符号列表）放在
+              <code>groups</code> 数组中。 这个函数遍历
+              <code>body.children</code>，遇到
+              <code>groups</code> 类型的引用时， 把 group
+              里的每个子元素"拆出来"，<strong>"拍平"到顶层</strong>。
+              这样后续处理就不用管嵌套了，每个内容项都是平等的。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def expand_groups(self, body_children, groups):
+    expanded_children = []
+    for item in body_children:
+        if isinstance(item, dict) and '$ref' in item:   # 是引用类型
+            ref_type, ref_num = ref.split('/')[-2:]
+            if ref_type == 'groups':                     # 是group引用
+                group = groups[int(ref_num)]              # 取出group对象
+                for child in group['children']:           # 遍历group的子元素
+                    child_copy = child.copy()
+                    child_copy['group_id'] = ref_num      # 标记来自哪个group
+                    child_copy['group_name'] = group.get('name', '')
+                    expanded_children.append(child_copy)   # "拍平"到顶层
+            else:
+                expanded_children.append(item)             # 非group引用保留
+        else:
+            expanded_children.append(item)                 # 非引用元素保留
+    return expanded_children</pre
+              >
+            </div>
+            <div class="explain-box">
+              <div class="explain-title">📖 举例理解</div>
+              <ul>
+                <li>
+                  假设 <code>body.children</code> 中有
+                  <code>{$ref: "#/groups/0"}</code>
+                </li>
+                <li>
+                  groups[0] 包含3个子项：<code>[$ref1, $ref2, $ref3]</code>
+                </li>
+                <li>
+                  expand_groups 把3个子项分别加入结果，并附带
+                  group_id/group_name
+                </li>
+                <li>
+                  最终
+                  <code>expanded_children</code> 中这3个子项和普通引用"平起平坐"
+                </li>
+              </ul>
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>assemble_content()</code>
+              调用，作为其第一步。为后续的引用解析铺平道路。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑯ _process_text_reference ═══════ -->
+          <div class="card" id="f16">
+            <h2>
+              ⑯ <code>_process_text_reference()</code> — 文本引用处理
+              <span class="badge badge-green">UTILITY</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              根据引用编号（如 <code>#/texts/5</code> 中的 5），从
+              <code>data['texts']</code> 数组中取出第5个文本块，
+              然后<strong>构建一个标准化的内容字典</strong>：包含
+              text（文本内容）、type（是paragraph还是heading）、
+              text_id（编号，用于溯源）。如果 OCR 纠正了原文，还附带 orig 字段。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def _process_text_reference(self, ref_num, data):
+    text_item = data['texts'][ref_num]               # 根据编号取文本块
+    content_item = {
+        'text': text_item.get('text', ''),            # 文本内容
+        'type': text_item['label'],                    # 类型：paragraph/heading/footnote
+        'text_id': ref_num                             # 编号（用于溯源）
+    }
+    # 如果OCR纠正了原文（orig≠text），附上原始内容
+    if text_item.get('orig', '') != text_item.get('text', ''):
+        content_item['orig'] = text_item['orig']
+    # 附加上下文标记（列表编号、标记符号等）
+    if 'enumerated' in text_item:
+        content_item['enumerated'] = text_item['enumerated']   # 是否有序列表
+    if 'marker' in text_item:
+        content_item['marker'] = text_item['marker']           # 如 '•', '1.'
+    return content_item</pre
+              >
+            </div>
+            <div class="explain-box">
+              <div class="explain-title">📖 返回示例</div>
+              <ul>
+                <li>
+                  普通段落：<code
+                    >{text: "营收增长20%", type: "paragraph", text_id: 5}</code
+                  >
+                </li>
+                <li>
+                  OCR纠正后：<code
+                    >{text: "Revenue", orig: "Revenuc", type: "paragraph",
+                    text_id: 12}</code
+                  >
+                </li>
+                <li>
+                  列表项：<code
+                    >{text: "第一步", type: "list_item", text_id: 8, marker:
+                    "1.", enumerated: True}</code
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>assemble_content()</code> 和
+              <code>_process_picture_block()</code>
+              调用。是文本标准化的核心函数。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑰ assemble_content ═══════ -->
+          <div class="card" id="f17">
+            <h2>
+              ⑰ <code>assemble_content()</code> — 按页组织内容
+              <span class="badge badge-orange">CORE</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              这是<strong>整个模块最复杂、最核心</strong>的函数。它把 Docling
+              分散在 body、texts、tables、pictures、groups
+              五个数组中的内容，<strong>按页码重新归类</strong>。最终输出
+              <code
+                >[{page:1, content:[...]}, {page:2, content:[...]}, ...]</code
+              >。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码 — 三步走</span>
+              </div>
+              <pre>
+def assemble_content(self, data):
+    pages = {}
+    # 步骤1：展开groups（把嵌套列表"拍平"）
+    expanded_body_children = self.expand_groups(
+        data['body']['children'], data.get('groups', []))
+
+    # 步骤2：遍历展开后的children，按$ref类型分发
+    for item in expanded_body_children:
+        ref_type, ref_num = parse_ref(item['$ref'])   # 解析 "#/texts/5" → ("texts", 5)
+
+        if ref_type == 'texts':                       # 处理文本
+            content_item = self._process_text_reference(ref_num, data)
+            page_num = data['texts'][ref_num]['prov'][0]['page_no']  # 从prov取页码
+
+        elif ref_type == 'tables':                    # 处理表格引用
+            content_item = {'type': 'table', 'table_id': ref_num}
+            page_num = data['tables'][ref_num]['prov'][0]['page_no']
+
+        elif ref_type == 'pictures':                  # 处理图片引用
+            content_item = {'type': 'picture', 'picture_id': ref_num}
+            page_num = data['pictures'][ref_num]['prov'][0]['page_no']
+
+        # 将content_item归入对应页码
+        if page_num not in pages:
+            pages[page_num] = {'page': page_num, 'content': [], 'page_dimensions': bbox}
+        pages[page_num]['content'].append(content_item)
+
+    # 步骤3：按页码升序排列返回
+    return [pages[pn] for pn in sorted(pages.keys())]</pre
+              >
+            </div>
+            <div class="explain-box">
+              <div class="explain-title">📖 核心概念详解</div>
+              <ul>
+                <li>
+                  <strong>$ref 引用机制：</strong>Docling 用
+                  <code>"$ref": "#/texts/5"</code>
+                  引用内容而非直接嵌入。body记录"顺序"，texts数组记录"内容"，两者解耦
+                </li>
+                <li>
+                  <strong>prov（provenance）溯源：</strong
+                  >每个text/table/picture都有
+                  <code>prov</code>
+                  字段，记录在PDF中的<strong>页码和坐标(bbox)</strong>。这是按页组织的唯一依据
+                </li>
+                <li>
+                  <strong>为什么用 dict 而不是 list 存 pages？</strong
+                  >因为页码可能不连续（如 {1:..., 3:...,
+                  5:...}），用dict可以按页码直接索引，最后再sorted排序
+                </li>
+              </ul>
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>assemble_report()</code> 调用。输出存入 JSON 的
+              <code>content</code> 字段。
+            </div>
+          </div>
+          <!-- ═══════ ⑱ assemble_tables ═══════ -->
+          <div class="card" id="f18">
+            <h2>
+              ⑱ <code>assemble_tables()</code> — 表格三格式输出
+              <span class="badge badge-orange">TABLES</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              遍历 Docling
+              识别出的每个表格，把每个表格输出为<strong>三种格式</strong>： ①
+              原始 JSON（完整数据）、② Markdown（给 LLM 用）、③
+              HTML（保留视觉结构）。 同时记录表格在 PDF
+              中的位置（页码、bbox坐标）和行列数。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码 — 三格式输出</span>
+              </div>
+              <pre>
+for i, table in enumerate(tables):
+    table_json_obj = table.model_dump()           # ① 原始JSON（完整数据）
+    table_md = self._table_to_md(table_json_obj)  # ② Markdown（LLM友好）
+    table_html = table.export_to_html()           # ③ HTML（渲染友好）
+
+    table_obj = {
+        'table_id': ref_num,      # 表格编号
+        'page': table_page_num,   # 所在页码
+        'bbox': [l, t, r, b],     # 边界框坐标
+        '#-rows': nrows,          # 行数
+        '#-cols': ncols,          # 列数
+        'markdown': table_md,     # Markdown格式
+        'html': table_html,       # HTML格式
+        'json': table_json_obj    # 原始JSON
+    }</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>💡 为什么输出三种格式？</strong><br />
+              - <strong>Markdown：</strong>直接塞进 LLM Prompt，token
+              效率最高<br />
+              -
+              <strong>HTML：</strong
+              >保留合并单元格等视觉结构，适合前端渲染<br />
+              - <strong>JSON：</strong>完整结构化数据，适合程序化数值提取
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>assemble_report()</code> 调用。输出存入 JSON 的
+              <code>tables</code> 字段。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑲ _table_to_md ═══════ -->
+          <div class="card" id="f19">
+            <h2>
+              ⑲ <code>_table_to_md()</code> — Grid→Markdown转换
+              <span class="badge badge-green">UTILITY</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              Docling 的表格数据存在
+              <code>table['data']['grid']</code>
+              中——一个<strong>二维网格</strong>，
+              每个格子(cell)里有文字(text)。这个函数逐格提取文字，第一行当表头，其余当数据行，
+              用 <code>tabulate</code> 库渲染为
+              <strong>GitHub 风格的 Markdown 表格</strong>。
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码 — grid→text→Markdown</span>
+              </div>
+              <pre>
+def _table_to_md(self, table):
+    table_data = []
+    for row in table['data']['grid']:                    # 遍历每一行
+        table_row = [cell['text'] for cell in row]       # 提取每格文字
+        table_data.append(table_row)
+
+    if len(table_data) > 1 and len(table_data[0]) > 0:   # 有表头的情况
+        try:
+            md_table = tabulate(table_data[1:],           # 数据行
+                                headers=table_data[0],    # 表头
+                                tablefmt="github")        # GitHub风格
+        except ValueError:                                # 类型推断失败
+            md_table = tabulate(table_data[1:], headers=table_data[0],
+                                tablefmt="github", disable_numparse=True)  # 全当字符串
+    else:
+        md_table = tabulate(table_data, tablefmt="github")  # 无表头
+    return md_table</pre
+              >
+            </div>
+            <div class="explain-box">
+              <div class="explain-title">📖 举例：输入→输出</div>
+              <ul>
+                <li>
+                  <strong>输入 grid：</strong
+                  ><code
+                    >[[{text:"年份"}, {text:"营收"}], [{text:"2024"},
+                    {text:"100亿"}]]</code
+                  >
+                </li>
+                <li><strong>输出 Markdown：</strong></li>
+              </ul>
+              <pre>
+| 年份 | 营收  |
+|------|-------|
+| 2024 | 100亿 |</pre
+              >
+            </div>
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong> 被
+              <code>assemble_tables()</code> 调用，为每个表格生成 Markdown
+              格式。
+            </div>
+          </div>
+          <!-- ═══════ ⑳ assemble_pictures ═══════ -->
+          <div class="card" id="f20">
+            <h2>⑳ <code>assemble_pictures()</code> — 图片信息组装 <span class="badge badge-purple">PICTURES</span></h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              遍历 Docling 识别出的每张图片，提取<strong>图片位置</strong>（页码+bbox坐标）和<strong>关联文本</strong>（图注、说明文字）。
+              注意：<strong>图片的二进制数据不保存</strong>，只保存元数据和关联文本。
+            </p>
+            <div class="code-block"><div class="code-header"><span class="lang">🐍 关键代码</span></div><pre>
+def assemble_pictures(self, data):
+    assembled_pictures = []
+    for picture in data['pictures']:
+        children_list = self._process_picture_block(picture, data)  # 提取图注文本
+
+        picture_obj = {
+            'picture_id': ref_num,          # 图片编号
+            'page': picture_page_num,       # 所在页码
+            'bbox': [l, t, r, b],           # 边界框坐标
+            'children': children_list,      # 关联文本（如图注）
+        }
+        assembled_pictures.append(picture_obj)
+    return assembled_pictures</pre></div>
+            <div class="highlight warn"><strong>⚠️ 注意：</strong> 图片二进制数据不保存在JSON中。仅保存位置信息和关联文本。实际图像需另外提取。</div>
+            <div class="highlight"><strong>📍 它在流程中的位置：</strong> 被 <code>assemble_report()</code> 调用。输出存入 JSON 的 <code>pictures</code> 字段。</div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ㉑ _process_picture_block ═══════ -->
+          <div class="card" id="f21">
+            <h2>㉑ <code>_process_picture_block()</code> — 图片文本提取 <span class="badge badge-purple">UTILITY</span></h2>
+            <div class="accent-bar"></div>
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              Docling 把图片关联的文本（如图注 caption）放在 <code>picture.children</code> 中，通过 <code>$ref</code> 引用。
+              这个函数遍历这些引用，调用 <code>_process_text_reference()</code> 提取每个关联文本，<strong>复用</strong>了之前写好的文本处理逻辑。
+            </p>
+            <div class="code-block"><div class="code-header"><span class="lang">🐍 关键代码</span></div><pre>
+def _process_picture_block(self, picture, data):
+    children_list = []
+    for item in picture['children']:               # 遍历图片的子元素
+        if isinstance(item, dict) and '$ref' in item:
+            ref_type, ref_num = parse_ref(item['$ref'])
+            if ref_type == 'texts':                 # 只处理文本引用
+                content_item = self._process_text_reference(ref_num, data)
+                children_list.append(content_item)
+    return children_list</pre></div>
+            <div class="highlight"><strong>📍 它在流程中的位置：</strong> 被 <code>assemble_pictures()</code> 调用。内部复用了 <code>_process_text_reference()</code>。</div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 总结：完整数据流 ═══════ -->
+          <div class="card" id="summary">
+            <h2>🌊 总结：完整数据流一览 <span class="badge badge-cyan">DATAFLOW</span></h2>
+            <div class="accent-bar"></div>
+            <p class="desc">
+              以上就是全部 <strong>21 个函数</strong> 的逐函数讲解。下面用一张图回顾整个 PDF 解析的完整数据流：
+            </p>
+
+            <div class="code-block"><div class="code-header"><span class="lang">📐 端到端数据流</span></div><pre>
+PDF 文件列表
+    │
+    ▼
+┌───────────────────────────────────────────────────┐
+│  ⑧ parse_and_export() 或 ⑨ parse_and_export_parallel()  │
+│     ├─ ⑤ convert_documents() → Docling引擎解析          │
+│     ├─ ⑥ process_documents()                            │
+│     │    ├─ ⑦ _normalize_page_sequence() [页码规整]     │
+│     │    └─ ⑪ assemble_report()                        │
+│     │         ├─ ⑫ assemble_metainfo() [元数据]         │
+│     │         ├─ ⑰ assemble_content()  [逐页内容]       │
+│     │         │    ├─ ⑮ expand_groups()                 │
+│     │         │    └─ ⑯ _process_text_reference()       │
+│     │         ├─ ⑱ assemble_tables()   [表格三格式]     │
+│     │         │    └─ ⑲ _table_to_md()                  │
+│     │         └─ ⑳ assemble_pictures() [图片信息]       │
+│     │              └─ ㉑ _process_picture_block()        │
+│     └─ ⑭ debug_data() [调试输出]                        │
+└───────────────────────────────────────────────────┘
+    │
+    ▼
+📄 {sha1_name}.json
+  ├─ metainfo  (页数/统计/公司名)
+  ├─ content   (逐页文本/表格/图片引用)
+  ├─ tables    (Markdown + HTML + JSON)
+  └─ pictures  (位置 + 关联文本)
+              </pre></div>
+
+            <div class="highlight">
+              <strong>🔄 下游消费路径：</strong>输出 JSON →
+              <code>parsed_reports_merging.py</code> 合并为简单页面结构 →
+              <code>text_splitter.py</code> 分块 →
+              <code>ingestion.py</code> 建向量库 →
+              <code>retrieval.py</code> 检索 → <code>prompts.py</code> + LLM 生成答案
+            </div>
+
+            <div class="highlight tip">
+              <strong>👶 新手回顾：</strong>恭喜你看完了全部 21 个函数！建议回顾顺序：
+              再看一遍 <a href="#f2">② PDFParser.__init__</a>（引擎创建）→
+              <a href="#f8">⑧ parse_and_export</a>（串行入口）→
+              <a href="#f11">⑪ assemble_report</a>（组装入口）→
+              <a href="#f17">⑰ assemble_content</a>（最复杂的核心函数）。
+              理解这4个函数，整个模块你就掌握了80%！
+            </div>
+          </div>
+          <!-- Footer -->
+          <footer>
+            pdf_parsing.py · Docling V2 + TableFormer + EasyOCR ·
+            RAG-Challenge-2 讲解页面
+          </footer>
+        </div>
+        <!-- /container -->
+      </div>
+      <!-- /main -->
+    </div>
+    <!-- /wrapper -->
+  </body>
+</html>
+                <td>PDF 文件名（去掉 .pdf 后缀）</td>
+                <td>唯一标识一份年报，用于关联向量库</td>
+
+              <tr>
+                <td><code>pages_amount</code></td>
+                <td><code>data['pages']</code></td>
+                <td>统计文档总页数</td>
+
+              <tr>
+                <td><code>texts/tables/pictures_amount</code></td>
+                <td>对应数组长度</td>
+                <td>了解文档内容构成</td>
+
+              <tr>
+                <td><code>company_name</code></td>
+                <td>CSV 文件（按 sha1 匹配）</td>
+                <td>按公司名检索</td>
+
+            </table>
+
+            <h3>assemble_pictures</h3>
+            <p class="desc">
+              处理图片块。Docling 将图片关联的文本（如说明、图注）放在
+              <code>picture.children</code> 中，通过
+              <code>_process_picture_block</code> 递归展开这些文本引用。
+            </p>
+
+            <div class="highlight warn">
+              <strong>⚠️ 注意：</strong> 图片本身（二进制数据）并不保存在 JSON
+              中，仅保存图片在 PDF 中的位置（<code>page</code> +
+              <code>bbox</code>）和关联文本。实际的图像数据需要另外提取。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 九、辅助机制 ═══════ -->
+          <div class="card" id="ch9">
+            <h2>🛠️ 九、辅助机制 — 页码规整 &amp; 调试快照</h2>
+            <div class="accent-bar"></div>
+
+            <div class="two-col">
+              <div class="func-card">
+                <h4>📏 _normalize_page_sequence</h4>
+                <p>
+                  遍历现有页码，找出最大页码。对于 1 到 max_page
+                  之间缺失的页码，插入空页面模板（<code
+                    >content: [], page_dimensions: {}</code
+                  >）。确保下游 text_splitter 不会因页码不连续而出错。
+                </p>
+              </div>
+              <div class="func-card green">
+                <h4>🐛 debug_data</h4>
+                <p>
+                  当 <code>debug_data_path</code> 被设置时，将 Docling
+                  的完整原始字典保存为 JSON
+                  文件。这是调试解析质量的"黄金数据源"——包含所有元数据、坐标、置信度等信息。
+                </p>
+              </div>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 Python — 页码规整</span
+                ><span>pdf_parsing.py</span>
+              </div>
+              <pre>
+existing_pages = {page['page'] for page in data['content']}
+max_page = max(existing_pages)
+empty_page_template = {"content": [], "page_dimensions": {}}
+
+new_content = []
+for page_num in range(1, max_page + 1):
+    page_content = next(
+        (page for page in data['content'] if page['page'] == page_num),
+        {"page": page_num, **empty_page_template}   # ═══ 缺失页用空模板填充 ═══
+    )
+    new_content.append(page_content)</pre
+              >
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 十、系统亮点总结 ═══════ -->
+          <div class="card" id="ch10">
+            <h2>✨ 十、系统亮点总结</h2>
+            <div class="accent-bar"></div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="label">🔄 双阶段处理</div>
+                <div class="value">
+                  PDFParser（粗解析）+ JsonReportProcessor（细组装），职责清晰
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="label">⚡ 多进程并行</div>
+                <div class="value">
+                  ProcessPoolExecutor 自动分块调度，CPU 利用率最大化
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="label">📊 表格三格式</div>
+                <div class="value">
+                  Markdown / HTML / JSON 同时输出，下游灵活消费
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="label">🔍 溯源追踪</div>
+                <div class="value">
+                  每个内容项保留 prov（页码 + bbox），可追溯原始位置
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="label">🛡️ 防御性设计</div>
+                <div class="value">页码规整、零容忍失败、鲁棒性回退</div>
+              </div>
+              <div class="info-item">
+                <div class="label">🏭 关注点分离</div>
+                <div class="value">
+                  解析（Docling）+ 重组（自定义类），可替换任一环节
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 十一、完整数据流 ═══════ -->
+          <div class="card" id="ch11">
+            <h2>
+              🌊 十一、完整数据流一览
+              <span class="badge badge-cyan">DATAFLOW</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <div class="code-block">
+              <div class="code-header"><span class="lang">📐 数据流</span></div>
+              <pre>
+PDF 文件列表
+    │
+    ▼
+┌─────────────────────────────────────────┐
+│  parse_and_export / parse_and_export_parallel  │
+│  ① 分块 ──→ ② Docling 转换 ──→ ③ 结果处理  │
+└─────────────────────────────────────────┘
+    │
+    ▼
+┌──────────────────────────────────────┐
+│         JsonReportProcessor          │
+│  ④ assemble_report()                │
+│     ├─ assemble_metainfo()          │
+│     ├─ assemble_content()           │
+│     │    └─ expand_groups()         │
+│     │    └─ _process_text_reference │
+│     ├─ assemble_tables()            │
+│     │    └─ _table_to_md()          │
+│     └─ assemble_pictures()          │
+│          └─ _process_picture_block  │
+└──────────────────────────────────────┘
+    │
+    ▼
+📄 {sha1_name}.json
+  ├─ metainfo  (页数/统计/公司名)
+  ├─ content   (逐页文本/表格/图片引用)
+  ├─ tables    (Markdown + HTML + JSON)
+  └─ pictures  (位置 + 关联文本)
+    </pre
+              >
+            </div>
+
+            <div class="highlight">
+              <strong>🔄 下游消费路径：</strong>输出 JSON →
+              <code>parsed_reports_merging.py</code> 合并为简单页面结构 →
+              <code>text_splitter.py</code> 分块 →
+              <code>ingestion.py</code> 建向量库 →
+              <code>retrieval.py</code> 检索 → <code>prompts.py</code> + LLM
+              生成答案
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <footer>
+            pdf_parsing.py · Docling V2 + TableFormer + EasyOCR ·
+            RAG-Challenge-2 讲解页面
+          </footer>
+        </div>
+        <!-- /container -->
+      </div>
+      <!-- /main -->
+    </div>
+    <!-- /wrapper -->
+  </body>
+</html>
