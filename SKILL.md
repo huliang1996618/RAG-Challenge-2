@@ -121,6 +121,12 @@
 | `.step-badge`                                             | 步骤编号圆形徽章（32px 圆形）                                                   |
 | `.step-row`                                               | 步骤行布局（徽章 + 内容）                                                       |
 | `footer`                                                  | 页脚，顶部边框分隔                                                              |
+| `.data-table` / `.data-table th` / `.data-table td`      | 数据表格，含表头蓝色字体样式和行悬停高亮背景                                    |
+| `.func-card.orange` / `.green` / `.purple`                | func-card 彩色左边框变体（橙/绿/紫）                                            |
+| `.arch-node.green` / `.purple` / `.orange`                | arch-node 彩色边框变体                                                          |
+| `.arch-arrow-down`                                        | 纵向箭头（用于架构图中竖排连接）                                                |
+| `.highlight.warn`                                         | 高亮变体：红色左边框，警告语义                                                  |
+| `.highlight.tip`                                          | 高亮变体：绿色左边框，提示/建议语义                                             |
 
 ### 图表展示（替代 Mermaid）
 
@@ -336,50 +342,129 @@
 - 必须包含 info-grid 展示关键配置参数
 - 架构图使用分组展示，节点使用 emoji 前缀
 
-### 3. 核心流程章节（必选）
+### 2-A. 函数索引表导航（逐函数讲解场景必选）
 
-按代码中的函数/模块逐章展开，每章一个 `.card`：
+当讲解模式为"逐函数讲解"时（如 `pdf_parsing_explain.html`），必须在整体架构章节中附带一张**完整的函数索引表**：
 
 ```html
-<div class="card">
-  <h2>🔍 N、章节标题 <span class="badge badge-COLOR">英文标签</span></h2>
-  <p class="desc">...该章节要讲清楚的核心点...</p>
-  <!-- 代码块 -->
-  <!-- CSS 自定义图表（可选） -->
-  <!-- explain-box -->
-  <!-- func-card（可选） -->
-  <!-- highlight（可选） -->
+<h3>📋 函数索引（点击跳转）</h3>
+<table class="data-table">
+  <tr>
+    <th>#</th>
+    <th>函数名</th>
+    <th>所属</th>
+    <th>一句话作用</th>
+    <th>优先级</th>
+  </tr>
+  <tr>
+    <td>①</td>
+    <td><a href="#f1"><code>函数名</code></a></td>
+    <td>所属类</td>
+    <td>一句话描述函数的核心作用</td>
+    <td>🔥 / ⭐ / —</td>
+  </tr>
+  <!-- 每个函数一行 -->
+</table>
+
+<div class="highlight tip">
+  <strong>👶 新手阅读建议：</strong>按优先级阅读——先读 🔥（核心函数），再读 ⭐（重要函数），最后读 —（辅助函数）。每个函数卡片都包含 <strong>"这个函数做什么"</strong>（大白话解释）、<strong>"关键代码逻辑"</strong> 和 <strong>"它在流程中的位置"</strong> 三个部分。
 </div>
 ```
 
-**章节数量**：5~10 章，覆盖代码中所有重要函数/模块。
+**规则**：
+- 使用 `.data-table` 的 5 列表格
+- 函数名列必须是 `<a href="#fN">` 锚点链接，指向对应函数卡片
+- 优先级与三级标记体系一致（🔥/⭐/—）
+- 必须在表格下方附带新手阅读建议的 `highlight.tip`
+
+### 3. 核心流程章节（必选）— 逐函数卡片模板
+
+按代码中的函数/模块逐章展开，每章一个 `.card`。**每个函数卡片必须遵循以下固定内部结构**：
+
+```html
+<div class="card" id="fN">
+  <h2>N、<code>函数名()</code> — 角色描述 <span class="badge badge-COLOR">英文标签</span></h2>
+  <div class="accent-bar"></div>
+
+  <!-- ① 大白话解释：这个函数做什么 -->
+  <h3>🤔 这个函数做什么？（大白话）</h3>
+  <p class="desc">...用最通俗的语言描述函数的核心目的...</p>
+
+  <!-- ② 关键代码片段（15~30行） -->
+  <div class="code-block">
+    <div class="code-header">
+      <span class="lang">🐍 Python — 关键代码</span>
+    </div>
+    <pre># 选取最能体现函数逻辑的核心片段</pre>
+  </div>
+
+  <!-- ③ 辅助解释组件（按需选择1~2个） -->
+  <!-- explain-box：解释设计思路 -->
+  <!-- info-grid：展示关键参数 -->
+  <!-- highlight：标注流程中的位置 -->
+
+  <!-- ④ 流程定位（必须） -->
+  <div class="highlight">
+    <strong>📍 它在流程中的位置：</strong>
+    被 <code>上游调用者()</code> 调用 / 调用 <code>下游函数()</code>
+  </div>
+</div>
+```
+
+**四大固定模块说明**：
+
+| 模块 | 必要性 | 作用 |
+|------|--------|------|
+| ① 🤔 大白话解释 | **必须** | 用通俗语言描述函数目的，让新手秒懂 |
+| ② 关键代码片段 | **必须** | 15~30行核心代码，配 `# ═══` 风格注释 |
+| ③ explain-box / info-grid | 按需 | 解释设计思路、展示参数对应关系 |
+| ④ 📍 流程位置 | **必须** | 标注调用关系，帮助建立全局视角 |
+
+**阶段间用 `.slide-divider` 分隔**：每个函数卡片之间插入 `<div class="slide-divider"><div class="divider-dot"></div></div>`。
+
+**章节数量**：覆盖代码中所有重要函数/模块，不限数量。对于重要函数多的代码（如20+个函数），可以逐个讲解。
 
 ### 4. 总结章节（必选）
 
 ```html
+<div class="card" id="summary">
+  <h2>🌊 N、完整数据流一览 <span class="badge badge-cyan">DATAFLOW</span></h2>
+  <div class="accent-bar"></div>
+  <p class="desc">...一句话总结全文...</p>
+
+  <!-- 完整 ASCII 数据流图（pre 标签大图） -->
+  <div class="code-block">
+    <div class="code-header"><span class="lang">📐 端到端数据流</span></div>
+    <pre>
+输入 → 核心流程 → 输出
+  │       │
+  ├─ 模块A  ├─ 模块C
+  ├─ 模块B  └─ 模块D
+    </pre>
+  </div>
+
+  <!-- 下游消费路径说明 -->
+  <div class="highlight">
+    <strong>🔄 下游消费路径：</strong>输出 → 下游模块A → 下游模块B → ...
+  </div>
+
+  <!-- 新手回顾建议（带锚点链接） -->
+  <div class="highlight tip">
+    <strong>👶 新手回顾：</strong>
+    建议回顾顺序：<a href="#f2">② 某函数</a> → <a href="#f8">⑧ 某函数</a> → ... 理解这N个函数，整个模块你就掌握了80%！
+  </div>
+</div>
+
 <div class="card">
-  <h2>✨ N、系统亮点总结</h2>
+  <h2>✨ N+1、系统亮点总结</h2>
+  <div class="accent-bar"></div>
   <div class="info-grid">
     <!-- 6~8 个 info-item，每个带 emoji -->
   </div>
 </div>
 ```
 
-### 5. 数据流/完整流程章节（可选，作为最后一章）
-
-```html
-<div class="card">
-  <h2>🌊 N、完整数据流一览 <span class="badge badge-cyan">DATAFLOW</span></h2>
-  <p class="desc">...</p>
-  <!-- CSS 自定义流程图 / 纯文本 pre 流程图 -->
-  <div class="code-block">
-    <div class="code-header"><span class="lang">📐 数据流</span></div>
-    <pre>用户输入 → 检索 → 意图 → LLM → 输出</pre>
-  </div>
-</div>
-```
-
-### 6. Footer（必选）
+### 5. Footer（必选）
 
 ```html
 <footer>系统名称 · 技术栈列举 · 讲解页面</footer>
@@ -602,7 +687,7 @@
 
 ### 3. 装饰性分隔线（Slide Divider）
 
-每两个大章节卡片之间使用视觉分隔器，增强"翻页感"：
+每个卡片之间使用视觉分隔器，增强"翻页感"：
 
 ```css
 .slide-divider {
@@ -677,8 +762,18 @@
   padding: 22px 24px;
 }
 .highlight {
+  background: rgba(88, 166, 255, 0.05);
+  border-left: 4px solid var(--accent);
   border-radius: 0 12px 12px 0;
   padding: 18px 22px;
+}
+.highlight.warn {
+  border-color: rgba(248, 81, 73, 0.4);
+  background: rgba(248, 81, 73, 0.05);
+}
+.highlight.tip {
+  border-color: rgba(63, 185, 80, 0.4);
+  background: rgba(63, 185, 80, 0.05);
 }
 ```
 
@@ -761,6 +856,70 @@
 - 代码中可添加 `# ═══ 标注 ═══` 风格的注释来强调关键行
 - 不要贴完整函数，选核心片段（15~30 行）
 
+### data-table 使用规范
+
+用于展示多列结构化数据（如函数索引表、参数对照表）。必须包含以下 CSS：
+
+```css
+/* ═══════════════════ 表格 ═══════════════════ */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 0.9em;
+}
+.data-table th {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--accent);
+  border-bottom: 2px solid var(--border);
+}
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.data-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+.data-table code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--accent);
+}
+```
+
+HTML 使用示例：
+
+```html
+<table class="data-table">
+  <tr><th>列1</th><th>列2</th><th>列3</th></tr>
+  <tr><td>数据</td><td>数据</td><td><code>代码</code></td></tr>
+</table>
+```
+
+### 代码语法高亮（CSS 类）
+
+当 `code-block` 中的 `pre` 内容需要语法高亮时，使用以下 CSS 类（对应 Pygments 默认输出的 class 名）：
+
+```css
+/* ── 语法高亮 ── */
+.code-block pre .c1 { color: #6e7681; }  /* 注释 */
+.code-block pre .k  { color: var(--red); }    /* 关键字 */
+.code-block pre .nf { color: var(--purple); } /* 函数名 */
+.code-block pre .s  { color: var(--green); }  /* 字符串 */
+.code-block pre .n  { color: var(--cyan); }   /* 标识符名 */
+.code-block pre .kn { color: var(--red); }    /* import 关键字 */
+.code-block pre .o  { color: var(--accent); } /* 运算符 */
+.code-block pre .bp { color: var(--orange); } /* 内置伪常量(如self) */
+```
+
+使用方式：在 `<pre>` 内用 `<span class="...">` 包裹对应 token。
+
 ### CSS 自定义图表使用规范（替代 Mermaid）
 
 #### 架构图（arch-diagram）
@@ -796,8 +955,11 @@
 
 ### highlight 使用规范
 
-- 用于强调关键对比、安全提示、重要警告
-- 左边框颜色按语义调整：蓝色（信息）、绿色（对比）、紫色（概念）、橙色（技巧）
+- 用于强调关键对比、安全提示、重要警告、阅读建议
+- 默认 `.highlight`：蓝色左边框，通用信息提示
+- `.highlight.warn`：红色左边框，警告/注意/限制
+- `.highlight.tip`：绿色左边框，技巧/建议/推荐路径
+- 内容中常用 `<strong>` 加粗关键短语，用 `<code>` 标注符号名
 
 ---
 
