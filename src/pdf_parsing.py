@@ -95,7 +95,7 @@ class PDFParser:
 
     def convert_documents(self, input_doc_paths: List[Path]) -> Iterable[ConversionResult]:
         """将 PDF 文件列表批量转换为 Docling 文档对象（返回可迭代的转换结果）"""
-        conv_results = self.doc_converter.convert_all(source=input_doc_paths)  # 调用 Docling 批量转换所有 PDF
+        conv_results = self.doc_converter.convert_all(source='input_doc_paths')  # 调用 Docling 批量转换所有 PDF
         return conv_results  # 返回转换结果的可迭代对象（惰性求值，逐个处理）
     
     def process_documents(self, conv_results: Iterable[ConversionResult]):

@@ -647,6 +647,50 @@
         border-radius: 50%;
         box-shadow: 0 0 8px var(--accent);
       }
+
+      /* ── 思考题样式 ── */
+      .q-item { display: flex; gap: 14px; align-items: flex-start; margin: 14px 0; padding: 14px 18px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; transition: border-color 0.2s; }
+      .q-item:hover { border-color: var(--accent); }
+      .q-num { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.85em; flex-shrink: 0; margin-top: 1px; }
+      .q-num.fire { background: #f85149; }
+      .q-num.bolt { background: #d2991d; }
+      .q-num.data { background: #3fb950; }
+      .q-num.global { background: #a371f7; }
+      .q-body { flex: 1; }
+      .q-body p { margin: 0; font-size: 0.9em; line-height: 1.6; }
+      .q-body p strong { color: var(--text); }
+      .q-hint { margin-top: 6px; font-size: 0.78em; color: var(--text-secondary); font-style: italic; }
+      .q-hint code { font-size: 0.92em; background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; }
+      .q-section-title { font-size: 0.95em; font-weight: 700; color: var(--text); margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+      .q-section-title .icon { font-size: 1.1em; }
+
+      /* ── 答案展开/折叠 ── */
+      details.answer { margin: 8px 0 12px 48px; }
+      details.answer summary {
+        cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 12px; border-radius: 6px; font-size: 0.8em; font-weight: 600;
+        color: var(--accent); background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2);
+        transition: all 0.2s;
+      }
+      details.answer summary:hover { background: rgba(88,166,255,0.15); }
+      details.answer[open] summary { border-radius: 6px 6px 0 0; margin-bottom: 0; }
+      details.answer .answer-body {
+        padding: 12px 14px; margin: 0; background: rgba(88,166,255,0.03);
+        border: 1px solid rgba(88,166,255,0.12); border-top: none; border-radius: 0 0 8px 8px;
+        font-size: 0.82em; line-height: 1.75; color: var(--text-secondary);
+      }
+      details.answer .answer-body strong { color: var(--text); }
+      details.answer .answer-body code {
+        background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 0.92em;
+      }
+      details.answer .answer-body ul, details.answer .answer-body ol { padding-left: 20px; margin: 6px 0; }
+      details.answer .answer-body li { margin: 4px 0; }
+      details.answer .answer-body pre {
+        background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px;
+        padding: 10px 14px; margin: 10px 0; overflow-x: auto; font-size: 0.88em;
+        line-height: 1.5; color: #e6edf3;
+      }
+      details.answer .answer-body pre code { background: none; padding: 0; font-size: 1em; }
     </style>
   </head>
   <body>
@@ -659,6 +703,11 @@
           <span>⭐ = 重要</span>
         </div>
         <div class="toc-list">
+          <a href="#questions"
+            ><span class="toc-num">🤔</span>带着问题看<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
           <a href="#ch0"
             ><span class="toc-num">〇</span>架构索引<span class="prio-fire"
               >🔥</span
@@ -787,6 +836,804 @@
               <span class="tag">⚡ 并行加速</span>
               <span class="tag">🔄 JSON 序列化</span>
               <span class="tag">🔍 OCR 识别</span>
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 🤔 带着问题看文档 ═══════ -->
+          <div class="card" id="questions">
+            <h2>🤔 带着问题看文档 — 10道思考题 <span class="badge badge-red">PRE-READ</span></h2>
+            <div class="accent-bar"></div>
+            <p class="desc">
+              在逐函数阅读之前，<strong>先带着这些问题去理解代码设计</strong>。每个问题都指向 pdf_parsing.py 的一个关键设计决策，读完整个文档后你应该能回答它们。
+            </p>
+
+            <!-- 🔥 核心架构 -->
+            <div class="q-section-title"><span class="icon">🔥</span> 核心架构问题</div>
+
+            <div class="q-item">
+              <div class="q-num fire">1</div>
+              <div class="q-body">
+                <p><strong>Q1：为什么要把 PDF 解析拆成两个类？</strong></p>
+                <p>PDFParser 负责"粗解析"，JsonReportProcessor 负责"细组装"。这是一种什么设计模式？如果不拆分会有什么问题？</p>
+                <div class="q-hint">💡 提示：想想下游模块需要什么格式的数据，以及"解析"和"格式化"能不能混在一起。</div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>两阶段架构是"关注点分离"设计——把"取数据"和"格式化数据"解耦：</strong><br/><br/>
+
+                <strong>阶段1 — PDFParser.convert_documents()：取原始数据</strong><br/>
+                <pre><code>def convert_documents(self, input_doc_paths):
+    # 一行代码：把 PDF 文件列表喂给 Docling，拿到原始解析结果
+    conv_results = self.doc_converter.convert_all(source='input_doc_paths')
+    return conv_results  # Iterable[ConversionResult]，每个 PDF 一个</code></pre>
+                这个阶段<strong>完全依赖 Docling API</strong>（pdf_backend、PipelineOptions、TableFormer），返回的是 Docling 内部格式，下游根本看不懂。<br/><br/>
+
+                <strong>阶段2 — JsonReportProcessor.assemble_report()：格式化为下游JSON</strong><br/>
+                <pre><code>def assemble_report(self, conv_result, normalized_data=None):
+    data = normalized_data if normalized_data else conv_result.document.export_to_dict()
+    assembled_report = {}
+    assembled_report['metainfo'] = self.assemble_metainfo(data)     # → 页数/公司名
+    assembled_report['content']  = self.assemble_content(data)       # → 逐页文本
+    assembled_report['tables']   = self.assemble_tables(tables,data) # → MD+HTML+JSON
+    assembled_report['pictures'] = self.assemble_pictures(data)       # → 图片位置
+    return assembled_report</code></pre>
+                这个阶段与 PDF 引擎<strong>零依赖</strong>——它只接收 dict，返回 dict。<br/><br/>
+
+                <strong>不拆分会怎样？——三个具体问题：</strong><br/>
+                ① <strong>换引擎代价巨大</strong>：Docling→PyMuPDF 需要重写所有代码，包括 JSON 格式化逻辑<br/>
+                ② <strong>单元测试困难</strong>：测试"公司名是否正确放入 metainfo"需要真正跑一次 PDF 解析，一个测试几十秒<br/>
+                ③ <strong>并行模式冲突</strong>：串行模式中 <code>convert_documents()</code> 在主进程执行，<code>process_documents()</code> 也在主进程；但并行模式中，<code>_process_chunk()</code> 在子进程中同时调用两者。如果它们耦合在一起，子进程调用逻辑会极其混乱<br/><br/>
+
+                这正是 <code>parse_and_export()</code> 中分两步的原因：
+                <pre><code>def parse_and_export(self, input_doc_paths):
+    conv_results = self.convert_documents(input_doc_paths)      # 阶段1：全部转换
+    success, failure = self.process_documents(conv_results)     # 阶段2：逐个组装+存盘
+    return success, failure</code></pre>
+              </div>
+            </details>
+
+
+            <div class="q-item">
+              <div class="q-num fire">2</div>
+              <div class="q-body">
+                <p><strong>Q2：expand_groups() 为什么要"拍平"嵌套列表？</strong></p>
+                <p>Docling 会把页面内容按层级组织（list → group → label/group → ...），不拍平会怎样？能举一个"嵌套结构"的具体例子吗？</p>
+                <div class="q-hint">💡 提示：想想看如果一篇文章有"大标题 + 小标题 + 正文"三层结构，拍平前后分别是什么样子。</div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>Docling 保留 PDF 的 visual hierarchy，expand_groups() 将它"压扁"成线性列表。先看核心代码：</strong><br/><br/>
+
+                <pre><code>def expand_groups(self, body_children, groups):
+    expanded_children = []
+    for item in body_children:
+        if isinstance(item, dict) and '$ref' in item:
+            ref = item['$ref']                          # 例如 "#/groups/0"
+            ref_type, ref_num = ref.split('/')[-2:]      # → ('groups', '0')
+            ref_num = int(ref_num)
+
+            if ref_type == 'groups':                     # 这是一个 group 引用！
+                group = groups[ref_num]                  # 取出 group 对象
+                group_id = ref_num
+                group_name = group.get('name', '')       # 如 "主营业务"
+                group_label = group.get('label', '')     # 如 "section"
+
+                for child in group['children']:          # 遍历 group 内的子元素
+                    child_copy = child.copy()            # 浅拷贝避免污染
+                    child_copy['group_id'] = group_id    # 附加来源信息
+                    child_copy['group_name'] = group_name
+                    child_copy['group_label'] = group_label
+                    expanded_children.append(child_copy) # 展开到顶层
+            else:
+                expanded_children.append(item)           # 非 groups 直接保留
+        else:
+            expanded_children.append(item)
+    return expanded_children</code></pre>
+
+                <strong>具体例子——年报中的层级列表：</strong><br/><br/>
+                年报第3页有这样一段内容：
+                <table style="font-size:13px;margin:8px 0">
+                <tr><td style="padding:4px 12px;color:#3fb950">1. 主营业务数据</td></tr>
+                <tr><td style="padding:4px 12px 4px 24px">1.1 营收构成</td></tr>
+                <tr><td style="padding:4px 12px 4px 36px">产品A收入60亿元，占总营收60%</td></tr>
+                <tr><td style="padding:4px 12px 4px 24px">1.2 成本构成</td></tr>
+                <tr><td style="padding:4px 12px 4px 36px">原材料成本30亿元</td></tr>
+                <tr><td style="padding:4px 12px;color:#3fb950">2. 研发投入</td></tr>
+                <tr><td style="padding:4px 12px 4px 36px">研发费用15亿元，同比增长20%</td></tr>
+                </table>
+
+                Docling 内部把这段内容组织为：
+                <pre><code>data['body']['children'] = [
+    {"$ref": "#/groups/0"},          # ← 整个"1.主营业务数据" group
+    {"$ref": "#/groups/1"},          # ← 整个"2.研发投入" group
+]
+data['groups'] = [
+    {  # groups[0] — "1.主营业务数据" 及其子项
+        "name": "1. 主营业务数据", "label": "section",
+        "children": [
+            {"$ref": "#/groups/2"},      # ← 嵌套的 group "1.1营收构成"
+            {"$ref": "#/groups/3"},      # ← 嵌套的 group "1.2成本构成"
+        ]
+    },
+    {  # groups[1] — "2.研发投入"
+        "name": "2. 研发投入", "label": "section",
+        "children": [{"$ref": "#/texts/5"}]  # → 研发费用文本
+    },
+    {  # groups[2] — "1.1营收构成"
+        "name": "1.1 营收构成", "label": "subsection",
+        "children": [{"$ref": "#/texts/3"}]  # → 产品A收入文本
+    },
+    {  # groups[3] — "1.2成本构成"
+        "name": "1.2 成本构成", "label": "subsection",
+        "children": [{"$ref": "#/texts/4"}]  # → 原材料成本文本
+    }
+]</code></pre>
+
+                <strong>expand_groups() 处理后：</strong>
+                <pre><code>expanded_children = [
+    # groups[0] 展开 → 遍历其 children → 遇到 groups[2], groups[3]
+    {"$ref": "#/groups/2", "group_id":0, "group_name":"1. 主营业务数据", "group_label":"section"},
+    {"$ref": "#/groups/3", "group_id":0, "group_name":"1. 主营业务数据", "group_label":"section"},
+    # groups[1] 直接展开 → texts[5] 被提升
+    {"$ref": "#/texts/5",  "group_id":1, "group_name":"2. 研发投入", "group_label":"section"},
+    # 注意！groups[2] 和 groups[3] 也会被递归处理（它们出现在 expanded_children 中）：
+    # groups[2] → text[3] 提升：
+    {"$ref": "#/texts/3",  "group_id":2, "group_name":"1.1 营收构成", "group_label":"subsection"},
+    # groups[3] → text[4] 提升：
+    {"$ref": "#/texts/4",  "group_id":2, "group_name":"1.2 成本构成", "group_label":"subsection"},
+]</code></pre>
+
+                <strong>等等——代码只遍历了 body.children，没有递归处理 group 内部的 group！</strong>这是关键设计：<br/>
+                展开逻辑只对 <code>body.children</code> 做一层展开。如果 group 内部再嵌套 group（如 groups[0] → groups[2]），<strong>内部的 group 引用会被保留在 expanded_children 中</strong>。<br/>
+                但在 <code>assemble_content()</code> 的第二步遍历中，会再次遇到 <code>{"$ref": "#/groups/2"}</code>，<strong>此时它不是从 body.children 来，而是从 expanded_children 来</strong>——但 <code>assemble_content()</code> 的第二步遍历只会匹配 <code>ref_type == 'texts'/'tables'/'pictures'</code>，不会再递归处理 groups。<br/><br/>
+
+                <strong>不拍平的后果：</strong>下游 text_splitter 收到 <code>{"$ref": "#/groups/0"}</code> 这种东西，根本无法将其转为文本 chunk。embedding 也会把 label 和 text 混在一起编码，导致语义失真。
+              </div>
+            </details>
+
+
+            <div class="q-item">
+              <div class="q-num fire">3</div>
+              <div class="q-body">
+                <p><strong>Q3：$ref 引用是什么意思？为什么 Docling 要这样设计？</strong></p>
+                <p>为什么 Docling 不直接把文本内容嵌入在元素里，而是用一个引用编号？</p>
+                <div class="q-hint">💡 提示：想想同一段文本出现在多个位置（比如页眉页脚重复出现）的情况。<code>_process_text_reference()</code></div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>$ref = JSON Reference，是 Docling 数据库范式化设计的核心。先看解析它的代码：</strong><br/><br/>
+
+                <pre><code># assemble_content() 中解析 $ref 的关键代码
+for item in expanded_children:
+    if isinstance(item, dict) and '$ref' in item:
+        ref = item['$ref']                     # 例如 "#/texts/5"
+        ref_type, ref_num = ref.split('/')[-2:] # → ('texts', '5')
+        ref_num = int(ref_num)                  # → 5
+
+        if ref_type == 'texts':
+            text_item = data['texts'][ref_num]  # 按编号取到真实文本
+            content_item = self._process_text_reference(ref_num, data)
+            # _process_text_reference 内部：
+            #   text_item = data['texts'][ref_num]
+            #   content_item = {'text': text_item['text'], 'type': text_item['label'], 'text_id': ref_num}
+            #   如果 text != orig，附加 orig 字段（OCR纠正前的内容）
+            #   如果存在 enumerated/marker，附加列表编号/标记</code></pre>
+
+                <strong>为什么不用"内嵌"而用"引用"？——4个具体原因：</strong><br/><br/>
+
+                <strong>① 内容去重——页眉页脚</strong><br/>
+                一份年报100页，每页都出现页眉 "XX股份有限公司 2024年年度报告"。内嵌式需复制100次；$ref 只存1次：
+                <pre><code>data['texts'][0] = {"text": "XX股份有限公司 2024年年度报告", "label":"header"}
+// body.children 中每页引用一次：
+[{"$ref":"#/texts/0"}, ..., {"$ref":"#/texts/0"}]  ← 100次引用，0次重复存储</code></pre>
+
+                <strong>② 内容与结构分离</strong><br/>
+                <code>body.children</code> 只存阅读顺序（哪个在前哪个在后），<code>texts[]</code> 只存储内容本身。改变顺序不需要改内容，修正错别字不需要动顺序。<br/><br/>
+
+                <strong>③ 跨页文本</strong><br/>
+                一段话"公司2024年度实现了良好的经营业绩，其中主营业务收入100亿元..."跨第1-2页。Docling 识别为同一文本对象，prov 记录两个位置：
+                <pre><code>texts[5] = {"text":"公司2024年度实现...100亿元","prov":[
+    {"page_no":1,"bbox":{...}},  # 前半段在第1页
+    {"page_no":2,"bbox":{...}}   # 后半段在第2页
+]}</code></pre>
+                assemble_content() 只取 prov[0].page_no（起始页），所以跨页文本归到第1页。<br/><br/>
+
+                <strong>④ 可复用的解析器</strong><br/>
+                <code>_process_text_reference()</code> 被两处调用：<code>assemble_content()</code> 处理正文文本，<code>_process_picture_block()</code> 处理图片附属文本（图注）。如果文本内嵌，两处各写一套解析逻辑，容易不一致。
+
+                <strong>类比数据库</strong>：<code>body.children</code> = 订单明细表（存外键），<code>texts[]</code> = 商品表（存唯一内容），<code>$ref</code> = 外键 <code>FOREIGN KEY (text_id) REFERENCES texts(id)</code>。宁可多一次 JOIN，也不要在N个地方存同一份数据。
+              </div>
+            </details>
+
+
+            <div class="q-item">
+              <div class="q-num fire">4</div>
+              <div class="q-body">
+                <p><strong>Q4：表格为什么输出 Markdown / HTML / JSON 三种格式？</strong></p>
+                <p>assemble_tables() 同时生成三种格式。下游 RAG 每一步分别需要哪种格式？为什么不能只保留一种？</p>
+                <div class="q-hint">💡 提示：回顾一下 text_splitter 用的是什么格式，retrieval 用的是什么，最终给 LLM 看的又是什么。</div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>assemble_tables() 同时输出三种格式，因为 RAG 管线的三个环节各需一种：</strong><br/><br/>
+
+                <pre><code>def assemble_tables(self, tables, data):
+    assembled_tables = []
+    for i, table in enumerate(tables):
+        table_json_obj = table.model_dump()   # ① JSON——完整原始数据
+        table_md = self._table_to_md(table_json_obj)  # ② Markdown——文本化
+        table_html = table.export_to_html()            # ③ HTML——保留结构
+
+        table_page_num = data['tables'][i]['prov'][0]['page_no']
+        table_obj = {
+            'table_id': int(data['tables'][i]['self_ref'].split('/')[-1]),
+            'page': table_page_num,
+            'bbox': [...],
+            '#-rows': data['tables'][i]['data']['num_rows'],
+            '#-cols': data['tables'][i]['data']['num_cols'],
+            'markdown': table_md,     # ← 消费方：parsed_reports_merging.py
+            'html': table_html,       # ← 消费方：tables_serialization.py → GPT-4o-mini
+            'json': table_json_obj    # ← 消费方：调试/程序化提取
+        }
+        assembled_tables.append(table_obj)
+    return assembled_tables</code></pre>
+
+                <strong>三个消费路径，三种格式，缺一不可：</strong><br/><br/>
+
+                <strong>路径A — Markdown → 页文本 → text_splitter → FAISS</strong><br/>
+                <code>parsed_reports_merging.py</code> 的 <code>_get_serialized_table_text()</code> 读取 <code>table["markdown"]</code> 并拼入页文本：
+                <pre><code># 输出示例：嵌入在 page.text 中的 Markdown 表格
+| 项目    | 2024年 | 2023年 | 变化 |
+|---------|--------|--------|------|
+| 营业收入 | 100亿  | 80亿   | +25% |
+| 净利润   | 15亿   | 12亿   | +25% |</code></pre>
+                <strong>为什么是 Markdown？</strong>embedding 模型对 Markdown 表格的语义理解最好——"营业收入"和"100亿"在同一行中，向量能编码这种关联。HTML 标签（<code>&lt;td&gt;</code>）是噪声，JSON 有大量元数据字段也是噪声。<br/><br/>
+
+                <strong>路径B — HTML → GPT-4o-mini → information_blocks → FAISS</strong><br/>
+                <code>tables_serialization.py</code> 中 <code>table_content = table_info["html"]</code>，直接发给 LLM：
+                <pre><code>query = f'Here is a table in HTML format:\n"""{table_content}"""'</code></pre>
+                <strong>为什么是 HTML？</strong>Markdown 不支持 <code>colspan="3"</code>（合并单元格），年报财务报表中"营业总成本"横跨3列，Markdown 会把它"摊平"成3个重复的"营业总成本"，LLM 会误解为3个独立项目。<br/><br/>
+
+                <strong>路径C — JSON → 调试 / 数值计算</strong><br/>
+                <pre><code>table_json_obj = {
+  "data": {"grid": [[{"text":"营业收入"},{"text":"100亿"}], [{"text":"净利润"},{"text":"15亿"}]]],
+  "num_rows": 3, "num_cols": 2
+}</code></pre>
+                如果 LLM 回答不对，用 JSON 对比原始 grid 数据定位是"Docling 解析错了"还是"Markdown 格式化错了"。如需做精确数值计算（所有公司营收加总），遍历 JSON grid 比解析 Markdown 字符串可靠。
+
+                <strong>只用一种的后果：</strong><br/>
+                只 Markdown → 合并单元格信息丢失，LLM 看不懂复杂表格<br/>
+                只 HTML → text_splitter 散标签，embedding 质量骤降<br/>
+                只 JSON → LLM 无法直接理解网格语义，需要额外解释层
+              </div>
+            </details>
+
+
+            <!-- ⚡ 并行机制 -->
+            <div class="q-section-title"><span class="icon">⚡</span> 并行机制问题</div>
+
+            <div class="q-item">
+              <div class="q-num bolt">5</div>
+              <div class="q-body">
+                <p><strong>Q5：_process_chunk() 为什么必须是模块级函数？</strong></p>
+                <p>文档提到了 pickle 序列化限制。主进程怎么把任务"分发"给子进程？子进程之间共享数据吗？</p>
+                <div class="q-hint">💡 提示：如果写成类方法，主进程 pickle 时会报错 "cannot pickle 'method' object"。<code>ProcessPoolExecutor</code></div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>Python 多进程的核心限制：类实例方法不能被 pickle 序列化。先看代码结构：</strong><br/><br/>
+
+                <pre><code># ✅ 正确的写法——模块级函数
+def _process_chunk(pdf_paths, pdf_backend, output_dir, num_threads,
+                    metadata_lookup, debug_data_path):
+    parser = PDFParser(pdf_backend=pdf_backend, output_dir=output_dir, ...)
+    parser.metadata_lookup = metadata_lookup
+    parser.debug_data_path = debug_data_path
+    parser.parse_and_export(pdf_paths)
+    return f"Processed {len(pdf_paths)} PDFs."
+
+# ❌ 如果写成类方法——会报错
+class PDFParser:
+    def _process_chunk(self, pdf_paths):  # self 无法 pickle！
+        self.parse_and_export(pdf_paths)</code></pre>
+
+                <strong>为什么类方法不能被 pickle？</strong><code>pickle.dumps(self._process_chunk)</code> 时，Python 需要序列化 <code>self</code>，而 <code>self</code> 包含了整个 PDFParser 实例的所有属性（doc_converter、metadata_lookup、output_dir...），其中 doc_converter 内部有 C++ 扩展对象（Docling 的底层引擎），这些对象不支持 pickle。<br/><br/>
+
+                <strong>分发流程——看 parse_and_export_parallel() 的完整逻辑：</strong>
+                <pre><code>def parse_and_export_parallel(self, input_doc_paths, optimal_workers=10, chunk_size=None):
+    cpu_count = multiprocessing.cpu_count()
+    if optimal_workers is None:
+        optimal_workers = min(cpu_count, len(input_doc_paths))
+    if chunk_size is None:
+        chunk_size = max(1, len(input_doc_paths) // optimal_workers)
+
+    # 步骤1：切分 PDF 列表
+    chunks = [input_doc_paths[i:i+chunk_size] for i in range(0, total_pdfs, chunk_size)]
+
+    # 步骤2：提交到进程池
+    with ProcessPoolExecutor(max_workers=optimal_workers) as executor:
+        futures = [
+            executor.submit(
+                _process_chunk,       # ← 只传函数引用（不含 self）
+                chunk,                # ← List[Path]，可pickle
+                self.pdf_backend,     # ← 类对象（DoclingParseV2DocumentBackend），可pickle
+                self.output_dir,      # ← Path 对象，可pickle
+                self.num_threads,     # ← int，可pickle
+                self.metadata_lookup, # ← dict，可pickle（但可能很大）
+                self.debug_data_path  # ← Path，可pickle
+            )
+            for chunk in chunks
+        ]
+
+        # 步骤3：as_completed 实时收集
+        for future in as_completed(futures):
+            result = future.result()   # "Processed 5 PDFs."
+            processed_count += int(result.split()[1])</code></pre>
+
+                <strong>数据不共享——每个子进程独立内存空间：</strong><br/>
+                ① 主进程 pickle 所有参数 → 写入管道 → 子进程从管道读取 unpickle<br/>
+                ② 子进程 <strong>独立创建</strong> <code>PDFParser()</code> 实例（加载 Docling 模型到自己的内存）<br/>
+                ③ metadata_lookup 被<strong>复制</strong>（不是共享），子进程修改它不影响主进程<br/>
+                ④ 返回结果通过 <code>return</code> + pickle 传回主进程<br/><br/>
+
+                <strong>关键设计决策</strong>：参数中传 <code>self.pdf_backend</code>（类）而不是 <code>self</code>（实例），因为类可以被 pickle，含状态的实例不能。
+              </div>
+            </details>
+
+
+            <div class="q-item">
+              <div class="q-num bolt">6</div>
+              <div class="q-body">
+                <p><strong>Q6：并行模式和串行模式的区别是什么？什么时候选哪个？</strong></p>
+                <p>如果 PDF 数量很少（比如只有 2 个），并行真的更快吗？为什么？</p>
+                <div class="q-hint">💡 提示：考虑进程创建开销和数据序列化传输成本。<code>parse_and_export_parallel</code> vs <code>parse_and_export</code></div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>并行vs串行的本质区别：任务调度模型不同。先看两个模式的代码对比：</strong><br/><br/>
+
+                <strong>串行模式 —— 一个进程，顺序处理：</strong>
+                <pre><code>def parse_and_export(self, input_doc_paths):
+    start_time = time.time()
+    conv_results = self.convert_documents(input_doc_paths)   # Docling 内部已经是批量并行
+    success_count, failure_count = self.process_documents(conv_results)
+    #   process_documents 内部逐个组装 JSON + 写盘
+    #   for conv_res in conv_results:
+    #       data = conv_res.document.export_to_dict()
+    #       processor = JsonReportProcessor(...)
+    #       report = processor.assemble_report(conv_res, data)
+    #       json.dump(report, fp)
+    elapsed = time.time() - start_time
+    return success_count, failure_count</code></pre>
+
+                <strong>并行模式 —— 多个子进程，每个处理一批 PDF：</strong>
+                <pre><code>def parse_and_export_parallel(self, input_doc_paths, optimal_workers=10, chunk_size=None):
+    cpu_count = multiprocessing.cpu_count()
+    optimal_workers = min(cpu_count, total_pdfs)          # 进程数≤核心数
+    chunk_size = max(1, total_pdfs // optimal_workers)    # 每进程处理的PDF数
+
+    chunks = [input_doc_paths[i:i+chunk_size] for i in range(0, total_pdfs, chunk_size)]
+
+    with ProcessPoolExecutor(max_workers=optimal_workers) as executor:
+        futures = [executor.submit(_process_chunk, chunk, ...) for chunk in chunks]
+        for future in as_completed(futures):
+            result = future.result()
+    # 每个子进程内部：创建 PDFParser → convert_documents → process_documents</code></pre>
+
+                <strong>2个PDF时并行vs串行——详细计时分析：</strong><br/><br/>
+                假设单个 PDF 解析耗时 8秒（Docling加载模型需2秒，实际解析6秒）：<br/><br/>
+                <strong>串行（1进程）：</strong>
+                <pre><code>加载Docling模型: 2s          ← 只加载一次
+PDF1 解析: 6s
+PDF2 解析: 6s
+JSON组装+写盘: ≈0.5s × 2
+─────────────────────────
+总耗时: ≈15秒</code></pre>
+
+                <strong>并行（2子进程）：</strong>
+                <pre><code>主进程切分chunks: ≈0.01s
+创建ProcessPoolExecutor: ≈0.1s
+pickle序列化参数: ≈0.1s (metadata_lookup可能较大)
+子进程1: 加载Docling(2s) + 解析PDF1(6s) = 8s
+子进程2: 加载Docling(2s) + 解析PDF2(6s) = 8s
+  ← 两个子进程并行，总等待≈8s
+收集结果: ≈0.05s
+─────────────────────────
+总耗时: ≈8.3秒 (理论加速比 15/8.3 ≈ 1.8x)</code></pre>
+
+                看起来有1.8倍加速？但在<strong>有GPU的情况下</strong>：
+                <ul>
+                  <li>两个子进程同时向 GPU 提交 TableFormer 推理 → GPU 排队串行执行</li>
+                  <li>每个进程加载 Docling 模型 → 内存占用 ×2 → 可能触发 OS 内存交换</li>
+                  <li>Windows 上 spawn 模式（非 fork）→ 每个子进程重新 import 所有模块 → 额外 +1~3秒</li>
+                </ul>
+                实际加速比通常只有 <strong>1.0~1.3倍</strong>，甚至可能<strong>比串行更慢</strong>。<br/><br/>
+
+                <strong>Pipeline 默认 chunk_size=2 的设计智慧：</strong>
+                <pre><code># pipeline.py
+def parse_pdf_reports_parallel(self, chunk_size=2, max_workers=10):
+    pdf_parser.parse_and_export_parallel(
+        input_doc_paths=input_doc_paths,
+        optimal_workers=max_workers,  # 10 workers
+        chunk_size=chunk_size         # 每个 worker 只处理2个PDF
+    )</code></pre>
+                10个进程 × 每进程2个PDF = 可同时处理20个。chunk_size 小的好处：任何子进程崩溃只损失2个PDF的进度，重试代价小。<br/><br/>
+
+                <strong>选择建议：</strong>
+                <table style="font-size:0.85em;margin:8px 0">
+                <tr><td style="padding:4px 8px;color:#3fb950">PDF &lt; 4 个</td><td style="padding:4px 8px">串行（并行开销 > 收益）</td></tr>
+                <tr><td style="padding:4px 8px;color:#d2991d">PDF 4~20 个</td><td style="padding:4px 8px">并行 workers=min(cpu, pdf数)</td></tr>
+                <tr><td style="padding:4px 8px;color:#3fb950">PDF &gt; 20 个</td><td style="padding:4px 8px">并行 workers=cpu_count，chunk_size=2</td></tr>
+                <tr><td style="padding:4px 8px;color:#a371f7">调试阶段</td><td style="padding:4px 8px">串行（错误栈清晰，方便断点）</td></tr>
+                </table>
+              </div>
+            </details>
+
+
+            <!-- 📊 数据处理 -->
+            <div class="q-section-title"><span class="icon">📊</span> 数据处理问题</div>
+
+            <div class="q-item">
+              <div class="q-num data">7</div>
+              <div class="q-body">
+                <p><strong>Q7：_normalize_page_sequence() 为什么需要填补缺失页码？</strong></p>
+                <p>什么场景会导致 Docling 解析出来的页码不连续？如果不补全会对下游造成什么影响？</p>
+                <div class="q-hint">💡 提示：想想 text_splitter.py 遍历页面时的逻辑，以及 FAISS 索引中 page 字段的作用。</div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>_normalize_page_sequence() 解决"页码空洞"问题，确保下游按 page 索引不出错。完整代码：</strong><br/><br/>
+
+                <pre><code>def _normalize_page_sequence(self, data: dict) -> dict:
+    if 'content' not in data:
+        return data              # 防御：无 content 字段直接返回
+
+    normalized_data = data.copy()
+    existing_pages = {page['page'] for page in data['content']}  # 所有已有页码
+    max_page = max(existing_pages)                                # 最大页码
+
+    empty_page_template = {"content": [], "page_dimensions": {}}  # 空页模板
+
+    new_content = []
+    for page_num in range(1, max_page + 1):          # 从1遍历到max_page
+        page_content = next(
+            (page for page in data['content'] if page['page'] == page_num),
+            {"page": page_num, **empty_page_template}  # 找不到 → 用空模板
+        )
+        new_content.append(page_content)
+
+    normalized_data['content'] = new_content
+    return normalized_data</code></pre>
+
+                <strong>什么时候会产生页码空洞？——两种典型场景：</strong><br/><br/>
+
+                ① <strong>空白页</strong>：年报中的分隔页（"第X部分 财务报告"独占一页，没有正文文字），Docling 识别不到任何文本，不生成 page 条目<br/>
+                ② <strong>纯图片页</strong>：架构图、流程图等，Docling 可能只提取图片不提取文字<br/><br/>
+
+                原始数据示例：
+                <pre><code>data['content'] = [
+    {"page": 1, "content": [{"text":"公司概况...","type":"paragraph"}], "page_dimensions":{}},
+    # page 2 缺失！— 它是空白分隔页
+    {"page": 3, "content": [{"text":"财务数据...","type":"paragraph"}], "page_dimensions":{}},
+    # page 4 缺失！— 它是纯图片页
+    {"page": 5, "content": [{"text":"利润表...","type":"paragraph"}], "page_dimensions":{}},
+]</code></pre>
+
+                <strong>规整后——缺失页用空模板填充：</strong>
+                <pre><code>normalized_data['content'] = [
+    {"page": 1, "content": [{"text":"公司概况...","type":"paragraph"}], "page_dimensions":{}},
+    {"page": 2, "content": [], "page_dimensions": {}},   # ← 补全
+    {"page": 3, "content": [{"text":"财务数据...","type":"paragraph"}], "page_dimensions":{}},
+    {"page": 4, "content": [], "page_dimensions": {}},   # ← 补全
+    {"page": 5, "content": [{"text":"利润表...","type":"paragraph"}], "page_dimensions":{}},
+]</code></pre>
+
+                <strong>不补全会怎样？——下游连锁故障：</strong><br/>
+                ① <strong>text_splitter</strong> 遍历 <code>for page in content</code>，page 3 的 <code>enumerate()</code> 索引变成 [1] 而非 [2]，chunk 中 page 字段记录的就是错误页码<br/>
+                ② <strong>FAISS 元数据</strong>：chunk 的 <code>page</code> 字段与 PDF 实际页码错位。用户问"第45页利润表"时，检索返回的是第43页的内容<br/>
+                ③ <strong>retrieval.py</strong> 的 <code>return_parent_pages=True</code> 模式：按 page 字段聚合 chunk 回整页时，聚合结果完全错乱<br/><br/>
+
+                这个函数在 <code>process_documents()</code> 中被调用，位于 Docling 解析完成之后、JSON 组装之前：
+                <pre><code>def process_documents(self, conv_results):
+    for conv_res in conv_results:
+        data = conv_res.document.export_to_dict()
+        normalized_data = self._normalize_page_sequence(data)  # ← 在这里规整
+        processed_report = processor.assemble_report(conv_res, normalized_data)</code></pre>
+              </div>
+            </details>
+
+
+            <div class="q-item">
+              <div class="q-num data">8</div>
+              <div class="q-body">
+                <p><strong>Q8：assemble_content() 是文档中最复杂的函数。读完它的讲解后，用自己的话画出它处理一页内容的流程图。</strong></p>
+                <p>从 Docling 的 page.body.children 开始，到最终输出 {page: N, content: [...]}，中间经历了哪些步骤？</p>
+                <div class="q-hint">💡 提示：重点关注 expand_groups() 和 _process_text_reference() 这两个辅助函数在什么时机被调用。</div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>assemble_content() 把 Docling 的 $ref 引用图转换为 {page → content[]} 的页面视图。共 3 个步骤：</strong><br/><br/>
+
+                <strong>步骤1：expand_groups() — 拍平嵌套结构</strong>
+                <pre><code>body_children = data['body']['children']  # 例如 [{$ref:"#/texts/0"}, {$ref:"#/groups/0"}, {$ref:"#/texts/3"}]
+groups = data.get('groups', [])
+expanded_body_children = self.expand_groups(body_children, groups)
+# → [{$ref:"#/texts/0"}, {$ref:"#/texts/1", group_id:0,...}, {$ref:"#/texts/2", group_id:0,...}, {$ref:"#/texts/3"}]</code></pre>
+
+                <strong>步骤2：遍历 expanded_children，按 $ref 类型分发到页码</strong>
+                <pre><code>pages = {}
+for item in expanded_body_children:
+    ref = item['$ref']                        # "#/texts/5" 或 "#/tables/0"
+    ref_type, ref_num = ref.split('/')[-2:]    # ('texts', '5')
+    ref_num = int(ref_num)
+
+    if ref_type == 'texts':                   # ── 文本引用 ──
+        content_item = self._process_text_reference(ref_num, data)
+        # → {text:"公司2024年营收100亿", type:"paragraph", text_id:5}
+
+        if 'group_id' in item:                # 来自 group 展开的额外信息
+            content_item['group_id'] = item['group_id']
+            content_item['group_name'] = item['group_name']
+            content_item['group_label'] = item['group_label']
+
+        page_num = data['texts'][ref_num]['prov'][0]['page_no']  # 从溯源信息取页码
+
+    elif ref_type == 'tables':                # ── 表格引用 ──
+        content_item = {'type': 'table', 'table_id': ref_num}
+        page_num = data['tables'][ref_num]['prov'][0]['page_no']
+
+    elif ref_type == 'pictures':              # ── 图片引用 ──
+        content_item = {'type': 'picture', 'picture_id': ref_num}
+        page_num = data['pictures'][ref_num]['prov'][0]['page_no']
+
+    # 确保页码对应的页面已初始化
+    if page_num not in pages:
+        pages[page_num] = {'page': page_num, 'content': [], 'page_dimensions': {...}}
+    pages[page_num]['content'].append(content_item)</code></pre>
+
+                <strong>步骤3：按页码升序排序输出</strong>
+                <pre><code>sorted_pages = [pages[page_num] for page_num in sorted(pages.keys())]
+# → [{page:1, content:[...]}, {page:2, content:[...]}, ...]</code></pre>
+
+                <strong>完整流程示意（以一个真实年报页面为例）：</strong><br/><br/>
+                <table style="font-size:0.82em;width:100%;margin:8px 0">
+                <tr style="color:var(--accent)"><td style="padding:2px 8px">阶段</td><td style="padding:2px 8px">数据结构</td><td style="padding:2px 8px">含义</td></tr>
+                <tr><td style="padding:2px 8px;color:#f85149">输入</td><td style="padding:2px 8px"><code>body.children = [{$ref:"#/texts/0"}, {$ref:"#/groups/0"}, {$ref:"#/tables/0"}]</code></td><td style="padding:2px 8px">一页有：一段正文 + 一个列表组 + 一个表格</td></tr>
+                <tr><td style="padding:2px 8px;color:#d2991d">步骤1后</td><td style="padding:2px 8px"><code>expanded = [{$ref:"#/texts/0"}, {$ref:"#/texts/1", group_id:0}, {$ref:"#/texts/2", group_id:0}, {$ref:"#/tables/0"}]</code></td><td style="padding:2px 8px">groups[0] 展开为2个带 group 标记的 text 引用</td></tr>
+                <tr><td style="padding:2px 8px;color:#3fb950">步骤2后</td><td style="padding:2px 8px"><code>pages = {1: {content: [{text:"..."}, {text:"..."}, {text:"..."}, {type:"table",...}]}}</code></td><td style="padding:2px 8px">4个引用各自解析为 content_item，按 prov.page_no 归入 pages[1]</td></tr>
+                <tr><td style="padding:2px 8px;color:#a371f7">输出</td><td style="padding:2px 8px"><code>[{page:1, content:[...所有4个item...]}]</code></td><td style="padding:2px 8px">按页码排序的页面列表</td></tr>
+                </table>
+
+                <strong>_process_text_reference() 做了什么？</strong>它是文本引用的"翻译器"：
+                <pre><code>def _process_text_reference(self, ref_num, data):
+    text_item = data['texts'][ref_num]            # 取出原始文本项
+    content_item = {
+        'text': text_item.get('text', ''),        # 文本内容
+        'type': text_item['label'],                # paragraph/heading/list_item/...
+        'text_id': ref_num                         # 原始编号（用于溯源）
+    }
+
+    # OCR 纠正前后文本不同 → 保留原始版本
+    if text_item.get('orig', '') != text_item.get('text', ''):
+        content_item['orig'] = text_item['orig']
+
+    # 列表项的附加属性
+    if 'enumerated' in text_item:
+        content_item['enumerated'] = text_item['enumerated']  # 是否有序列表
+    if 'marker' in text_item:
+        content_item['marker'] = text_item['marker']          # 列表标记 "•" / "1."
+
+    return content_item</code></pre>
+              </div>
+            </details>
+
+
+            <!-- 🎯 全局视角 -->
+            <div class="q-section-title"><span class="icon">🎯</span> 全局视角问题</div>
+
+            <div class="q-item">
+              <div class="q-num global">9</div>
+              <div class="q-body">
+                <p><strong>Q9：pdf_parsing.py 的输出 JSON 中，哪些字段对后面的检索步骤最关键？</strong></p>
+                <p>输出 JSON 包含 metainfo、content、tables、pictures 四部分。哪些会进入向量库？哪些只供参考？</p>
+                <div class="q-hint">💡 提示：翻到文档最后的总结部分（完整数据流图），追踪每个字段的下游消费路径。</div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>输出 JSON 的四个字段在 RAG 管线中各有去向。先回顾 assemble_report() 的结构：</strong><br/><br/>
+
+                <pre><code>def assemble_report(self, conv_result, normalized_data=None):
+    data = normalized_data if normalized_data else conv_result.document.export_to_dict()
+    assembled_report = {}
+    assembled_report['metainfo'] = self.assemble_metainfo(data)       # ①
+    assembled_report['content']  = self.assemble_content(data)        # ②
+    assembled_report['tables']   = self.assemble_tables(tables, data) # ③
+    assembled_report['pictures'] = self.assemble_pictures(data)       # ④
+    return assembled_report</code></pre>
+
+                <strong>① metainfo — 路由键，不进向量库</strong><br/>
+                <pre><code>{
+  "sha1_name": "abc123def456...",          // → 作为文件名 & FAISS 索引 key
+  "company_name": "比亚迪股份有限公司",     // → retrieval.py 用它定位目标 FAISS 索引
+  "pages_amount": 42,                      // → 仅供参考
+  "texts_amount": 856,                     // → 仅供参考
+  "tables_amount": 15                      // → 仅供参考
+}</code></pre>
+                <strong>company_name 是检索的入口路由器</strong>——用户问"比亚迪营收多少"时：
+                <pre><code># retrieval.py 中
+def retrieve_by_company_name(self, company_name: str, query: str):
+    sha1_name = self.company_sha1_mapping[company_name]  # ← 通过 metainfo 中的映射
+    index = self.all_dbs[sha1_name]                       # ← 定位到正确的 FAISS 索引
+    results = index.search(query_embedding, k=28)</code></pre>
+
+                <strong>② content — 核心数据源，全部进向量库（占80%+）</strong><br/>
+                <pre><code>[
+  {"page": 1, "content": [
+    {"text": "公司2024年营收100亿元", "type": "paragraph", "text_id": 0},
+    {"text": "产品A收入60亿", "type": "list_item", "text_id": 1, "group_id": 0},
+    {"type": "table", "table_id": 0},      // ← 表格占位符，实际内容在 tables 中
+    {"type": "picture", "picture_id": 0}   // ← 图片占位符
+  ], "page_dimensions": {"l":72,"t":72,"r":540,"b":720}},
+  ...
+]</code></pre>
+                下游路径：<br/>
+                <code>content → parsed_reports_merging.py (逐页拼接为 page.text) → text_splitter.py (切为 chunk) → ingestion.py (embedding → FAISS)</code><br/><br/>
+
+                <strong>③ tables — 双路径进向量库</strong><br/>
+                <pre><code>[
+  {"table_id":0, "page":1, "bbox":[100,200,400,500],
+   "markdown": "| 项目 | 2024 |\n|------|------|\n| 营收 | 100亿 |",
+   "html": "<table><tr><td>项目</td><td>2024</td></tr>...",
+   "json": {"data":{"grid":[[...]]}}
+  },
+  ...
+]</code></pre>
+                路径A：<code>markdown</code> → parsed_reports_merging.py 拼入 page.text → text_splitter 切分 → FAISS<br/>
+                路径B：<code>html</code> → tables_serialization.py → GPT-4o-mini → <code>serialized.information_blocks</code> → text_splitter 作为独立 chunk → FAISS<br/><br/>
+
+                <strong>④ pictures — 不进向量库，仅位置档案</strong><br/>
+                <pre><code>[
+  {"page": 3, "bbox": [100, 200, 400, 500],
+   "children": [{"text": "图1：2024年营收趋势图", "type": "caption"}]
+  }
+]</code></pre>
+                图片的描述文字（caption）已在 <code>assemble_content()</code> 中通过 <code>_process_picture_block()</code> 提取并归入对应页面的 content，所以图片的文本部分已经在向量库中。pictures 字段本身只是位置记录，没有任何下游代码消费它做检索。<br/><br/>
+
+                <strong>汇总表：</strong>
+                <table style="font-size:0.82em;margin:10px 0">
+                <tr style="color:var(--accent)"><td>字段</td><td>进FAISS？</td><td>角色</td><td>下游消费者</td></tr>
+                <tr><td>metainfo.company_name</td><td>❌</td><td>🔑 路由键</td><td>retrieval.py 定位索引</td></tr>
+                <tr><td>metainfo.sha1_name</td><td>✅ 作为 key</td><td>🏷️ 索引标识</td><td>ingestion / retrieval</td></tr>
+                <tr><td>content[].text</td><td>✅ 核心</td><td>📝 chunk 来源</td><td>text_splitter → ingestion</td></tr>
+                <tr><td>tables[].markdown</td><td>✅ 随content</td><td>📊 嵌入页文本</td><td>parsed_reports_merging</td></tr>
+                <tr><td>tables[].html</td><td>✅ 经 LLM</td><td>📊 序列化来源</td><td>tables_serialization</td></tr>
+                <tr><td>tables[].json</td><td>❌</td><td>🔧 调试用</td><td>开发者对比验证</td></tr>
+                <tr><td>pictures</td><td>❌</td><td>📍 位置档案</td><td>caption 已通过 content 入库</td></tr>
+                </table>
+              </div>
+            </details>
+
+
+            <div class="q-item">
+              <div class="q-num global">10</div>
+              <div class="q-body">
+                <p><strong>Q10：如果要替换底层 PDF 解析引擎（比如从 Docling 换成 PyMuPDF），需要修改哪些函数？</strong></p>
+                <p>哪些函数完全不用动？这考验你对"两阶段架构"边界划分的理解。</p>
+                <div class="q-hint">💡 提示：PDFParser 和 JsonReportProcessor 的分工边界在哪里？JsonReportProcessor 依赖 Docling 的数据格式吗？</div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>两阶段架构的核心价值：换引擎时改动最小。答案 = 需要改哪些 + 完全不用改哪些：</strong><br/><br/>
+
+                <strong>需要修改的函数（PDFParser 侧——和 Docling API 直接交互的）：</strong><br/><br/>
+
+                ① <strong>_create_document_converter() — 完全重写</strong>
+                <pre><code># 当前：Docling 配置（需全部替换）
+def _create_document_converter(self):
+    pipeline_options = PdfPipelineOptions()
+    pipeline_options.do_ocr = True
+    pipeline_options.do_table_structure = True
+    pipeline_options.table_structure_options.mode = TableFormerMode.ACCURATE
+    # ... 15行配置 ...
+    return DocumentConverter(format_options=format_options)
+
+# 替换后：PyMuPDF 初始化
+def _create_document_converter(self):
+    # PyMuPDF 不需要 DocumentConverter
+    # 改为返回一个简单的配置字典
+    return {"ocr_lang": "eng+chi_sim", "dpi": 300}</code></pre>
+
+                ② <strong>convert_documents() — 完全重写</strong>
+                <pre><code># 当前：Docling API（一行代码 + Iterable 返回）
+def convert_documents(self, input_doc_paths):
+    conv_results = self.doc_converter.convert_all(source='input_doc_paths')
+    return conv_results  # Iterable[ConversionResult]
+
+# 替换后：PyMuPDF 遍历页面
+def convert_documents(self, input_doc_paths):
+    import fitz
+    results = []
+    for path in input_doc_paths:
+        doc = fitz.open(path)
+        pages = []
+        for page_num in range(len(doc)):
+            page = doc[page_num]
+            text = page.get_text("dict")  # 获取页面文本+位置
+            pages.append(text)
+        results.append({"path": path, "pages": pages})
+    return results</code></pre>
+
+                ③ <strong>_process_chunk() — 可能需小改</strong><br/>
+                它创建 PDFParser 实例并调用 parse_and_export，本质是传递参数，<strong>不直接依赖 Docling API</strong>。只要 PDFParser 的接口不变（仍接受 pdf_backend、output_dir 等参数），这个函数不需要改。<br/><br/>
+
+                <strong>完全不用改的函数（JsonReportProcessor 侧——零 Docling 依赖）：</strong><br/>
+                <table style="font-size:0.82em;margin:10px 0">
+                <tr style="color:var(--accent)"><td>函数</td><td>原因</td></tr>
+                <tr><td>assemble_report()</td><td>只做调度，不接触任何 PDF 引擎</td></tr>
+                <tr><td>assemble_metainfo()</td><td>只读 data dict 的统计字段</td></tr>
+                <tr><td>assemble_tables()</td><td>接收 Docling Table 对象 → 需 Adapter</td></tr>
+                <tr><td>_table_to_md()</td><td>只处理 grid 格式的二维数组，引擎无关</td></tr>
+                <tr><td>assemble_pictures()</td><td>只处理 data dict 的 pictures 字段</td></tr>
+                <tr><td>debug_data()</td><td>纯 JSON 输出，引擎无关</td></tr>
+                </table><br/>
+
+                <strong>最大的坑——需要 Adapter 层：</strong><br/>
+                JsonReportProcessor 的所有方法都接收 <code>data: dict</code>，但这个 dict 目前是 Docling 的格式（包含 <code>$ref</code>、<code>groups</code>、<code>texts</code>、<code>prov</code> 等）。PyMuPDF 的输出是平面文本+坐标。需要新增一个 Adapter 将 PyMuPDF 输出转为 Docling 兼容格式：
+                <pre><code>class PyMuPDFAdapter:
+    """将 PyMuPDF 的页面文本转为 Docling 兼容的 data dict"""
+    def convert(self, pymupdf_pages) -> dict:
+        data = {"body": {"children": []}, "groups": [], "texts": [], "tables": [], "pictures": []}
+        for page_num, page in enumerate(pymupdf_pages):
+            for block in page["blocks"]:
+                if block["type"] == 0:  # 文本块
+                    text_id = len(data["texts"])
+                    data["texts"].append({
+                        "text": " ".join([span["text"] for span in block["lines"][0]["spans"]]),
+                        "label": "paragraph",
+                        "prov": [{"page_no": page_num+1, "bbox": block["bbox"]}]
+                    })
+                    data["body"]["children"].append({"$ref": f"#/texts/{text_id}"})
+        return data</code></pre>
+
+                <strong>总结：换引擎的实际工作量 = 重写 2 个函数 + 新增 1 个 Adapter</strong>，而非重写整个模块。这就是两阶段分离的价值——核心的 JSON 组装逻辑（assemble_report 及子函数）零改动。如果把 Docling 调用和 JSON 格式化混在同一个函数中，换引擎 = 全部重写。
+              </div>
+            </details>
+
+
+            <div class="highlight tip" style="margin-top: 20px;">
+              <strong>👶 建议阅读顺序：</strong>Q1 → Q8 → Q2 → Q4（理解核心架构）→ Q5 → Q6（并行机制）→ Q7（数据处理）→ Q9 → Q10（全局视角）。每看完一个函数卡片，问自己："<em>如果把这个函数去掉，系统会怎样？</em>"
             </div>
           </div>
 
@@ -2372,3 +3219,4 @@ PDF 文件列表
     <!-- /wrapper -->
   </body>
 </html>
+ 

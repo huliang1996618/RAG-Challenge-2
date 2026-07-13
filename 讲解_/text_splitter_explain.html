@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>text_splitter.py — 逐函数详解</title>
+    <style>
+      /* ═══════════════════ CSS 变量 ═══════════════════ */
+      :root {
+        --bg: #0d1117;
+        --card-bg: #161b22;
+        --border: #30363d;
+        --text: #c9d1d9;
+        --text-secondary: #8b949e;
+        --accent: #58a6ff;
+        --green: #3fb950;
+        --orange: #d2991d;
+        --purple: #a371f7;
+        --red: #f85149;
+        --cyan: #39d2c0;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        line-height: 1.7;
+        min-height: 100vh;
+      }
+      .wrapper {
+        display: flex;
+        min-height: 100vh;
+      }
+      /* ── 侧边栏 ── */
+      .toc-sidebar {
+        width: 250px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        background: rgba(22, 27, 34, 0.95);
+        border-right: 1px solid var(--border);
+        padding: 24px 16px;
+        backdrop-filter: blur(8px);
+        z-index: 10;
+      }
+      .toc-sidebar h3 {
+        font-size: 0.85em;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+      }
+      .toc-legend {
+        display: flex;
+        gap: 12px;
+        font-size: 0.65em;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      .toc-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .toc-list a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.82em;
+        transition: all 0.2s;
+      }
+      .toc-list a:hover {
+        background: rgba(88, 166, 255, 0.08);
+        color: var(--text);
+      }
+      .toc-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        background: var(--border);
+        font-size: 0.75em;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .prio-fire {
+        color: #f85149;
+        font-size: 0.7em;
+        margin-left: auto;
+      }
+      .prio-star {
+        color: #d2991d;
+        font-size: 0.7em;
+        margin-left: auto;
+      }
+
+      /* ── 主内容区 ── */
+      .main {
+        flex: 1;
+        min-width: 0;
+        padding-bottom: 60px;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px 32px;
+      }
+
+      /* ── Hero ── */
+      .hero {
+        text-align: center;
+        padding: 40px 20px 30px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 30px;
+      }
+      .hero .icon {
+        font-size: 3em;
+        margin-bottom: 12px;
+      }
+      .hero h1 {
+        font-size: 1.8em;
+        margin-bottom: 8px;
+      }
+      .hero .subtitle {
+        color: var(--text-secondary);
+        font-size: 0.95em;
+      }
+      .tag-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 16px;
+      }
+      .tag {
+        background: rgba(88, 166, 255, 0.1);
+        border: 1px solid rgba(88, 166, 255, 0.2);
+        color: var(--accent);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.78em;
+      }
+
+      /* ── Card ── */
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px 32px;
+        margin-bottom: 24px;
+        scroll-margin-top: 20px;
+      }
+      .card h2 {
+        font-size: 1.15em;
+        margin-bottom: 6px;
+      }
+      .card h2 code {
+        font-size: 0.95em;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      .card h3 {
+        font-size: 1em;
+        margin: 20px 0 8px;
+        color: var(--accent);
+      }
+      .accent-bar {
+        width: 48px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), transparent);
+        border-radius: 2px;
+        margin-bottom: 16px;
+      }
+
+      /* ── Badge ── */
+      .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.72em;
+        font-weight: 600;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      .badge-blue {
+        background: rgba(88, 166, 255, 0.15);
+        color: var(--accent);
+      }
+      .badge-green {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--green);
+      }
+      .badge-orange {
+        background: rgba(210, 153, 29, 0.15);
+        color: var(--orange);
+      }
+      .badge-purple {
+        background: rgba(163, 113, 247, 0.15);
+        color: var(--purple);
+      }
+      .badge-cyan {
+        background: rgba(57, 210, 192, 0.15);
+        color: var(--cyan);
+      }
+      .badge-red {
+        background: rgba(248, 81, 73, 0.15);
+        color: var(--red);
+      }
+
+      /* ── Code Block ── */
+      .code-block {
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin: 16px 0;
+        overflow: hidden;
+      }
+      .code-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.78em;
+        color: var(--text-secondary);
+      }
+      .lang {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .code-block pre {
+        padding: 14px 16px;
+        margin: 0;
+        overflow-x: auto;
+        font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", monospace;
+        font-size: 0.82em;
+        line-height: 1.55;
+        white-space: pre;
+        color: #c9d1d9;
+      }
+
+      /* ── Explain Box ── */
+      .explain-box {
+        background: rgba(88, 166, 255, 0.04);
+        border: 1px solid rgba(88, 166, 255, 0.15);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 16px 0;
+      }
+      .explain-title {
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 8px;
+        font-size: 0.9em;
+      }
+      .explain-box ul {
+        padding-left: 20px;
+      }
+      .explain-box li {
+        margin: 6px 0;
+        font-size: 0.9em;
+      }
+      .explain-box pre {
+        background: #0d1117;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-family: "Cascadia Code", monospace;
+        font-size: 0.82em;
+        overflow-x: auto;
+        margin-top: 8px;
+      }
+
+      /* ── Highlight ── */
+      .highlight {
+        background: rgba(88, 166, 255, 0.05);
+        border-left: 3px solid var(--accent);
+        padding: 12px 16px;
+        border-radius: 0 6px 6px 0;
+        margin: 14px 0;
+        font-size: 0.88em;
+      }
+      .highlight.tip {
+        border-left-color: var(--green);
+      }
+      .highlight.warn {
+        border-left-color: var(--orange);
+      }
+
+      /* ── Table ── */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0;
+        font-size: 0.85em;
+      }
+      .data-table th {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 2px solid var(--border);
+        color: var(--text-secondary);
+      }
+      .data-table td {
+        padding: 7px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .data-table a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .data-table a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Desc ── */
+      .desc {
+        color: var(--text-secondary);
+        font-size: 0.9em;
+        margin-bottom: 12px;
+      }
+      .desc strong {
+        color: var(--text);
+      }
+
+      /* ── Separator ── */
+      .slide-divider {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 12px 0 24px;
+        opacity: 0.4;
+      }
+      .slide-divider::before,
+      .slide-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border),
+          transparent
+        );
+      }
+      .slide-divider .divider-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--accent);
+      }
+
+      /* ── Pipeline diagram ── */
+      .pipe-diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px 0;
+      }
+      .pipe-node {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 0.85em;
+        font-weight: 600;
+        text-align: center;
+      }
+      .pipe-node.in {
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .pipe-node.out {
+        border-color: var(--orange);
+        color: var(--orange);
+      }
+      .pipe-node.core {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .pipe-arrow {
+        color: var(--text-secondary);
+        font-size: 1.2em;
+        font-weight: 700;
+      }
+
+      /* ── Footer ── */
+      footer {
+        text-align: center;
+        padding: 30px 20px;
+        border-top: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: 0.82em;
+        margin-top: 20px;
+      }
+
+      /* ── 答案展开/折叠 ── */
+      details.answer {
+        margin: 10px 0 16px;
+      }
+      details.answer summary {
+        cursor: pointer;
+        user-select: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 0.82em;
+        font-weight: 600;
+        color: var(--accent);
+        background: rgba(88, 166, 255, 0.08);
+        border: 1px solid rgba(88, 166, 255, 0.2);
+        transition: all 0.2s;
+      }
+      details.answer summary:hover {
+        background: rgba(88, 166, 255, 0.15);
+      }
+      details.answer[open] summary {
+        border-radius: 6px 6px 0 0;
+        margin-bottom: 0;
+      }
+      details.answer .answer-body {
+        padding: 14px 16px;
+        margin: 0;
+        background: rgba(88, 166, 255, 0.03);
+        border: 1px solid rgba(88, 166, 255, 0.12);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        font-size: 0.85em;
+        line-height: 1.75;
+        color: var(--text-secondary);
+      }
+      details.answer .answer-body strong {
+        color: var(--text);
+      }
+      details.answer .answer-body code {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 0.92em;
+      }
+      details.answer .answer-body ul,
+      details.answer .answer-body ol {
+        padding-left: 20px;
+        margin: 6px 0;
+      }
+      details.answer .answer-body li {
+        margin: 4px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- ═══════════════════ 侧边栏 ═══════════════════ -->
+      <nav class="toc-sidebar">
+        <h3>📑 目录导航</h3>
+        <div class="toc-legend">
+          <span>🔥 核心</span><span>⭐ 重要</span><span>— 辅助</span>
+        </div>
+        <div class="toc-list">
+          <a href="#questions"
+            ><span class="toc-num">?</span>思考问题<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#ch0"
+            ><span class="toc-num">〇</span>架构与索引<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f1"
+            ><span class="toc-num">①</span>count_tokens<span class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f2"
+            ><span class="toc-num">②</span>split_all_reports<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f3"
+            ><span class="toc-num">③</span>_split_report<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f4"
+            ><span class="toc-num">④</span>_split_page<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f5"
+            ><span class="toc-num">⑤</span>_get_serialized_tables_by_page<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+        </div>
+      </nav>
+
+      <div class="main">
+        <div class="container">
+          <!-- Hero -->
+          <div class="hero">
+            <div class="icon">✂️</div>
+            <h1>text_splitter.py — 逐函数详解</h1>
+            <p class="subtitle">
+              5个 def 函数 · 简洁精炼 · 新手友好 · 理解 RAG 分块策略
+            </p>
+            <div class="tag-row">
+              <span class="tag">✂️ 文本分块</span>
+              <span class="tag">🔢 Token 计数</span>
+              <span class="tag">📊 表格保留</span>
+              <span class="tag">🔄 重叠窗口</span>
+              <span class="tag">🧠 tiktoken</span>
+              <span class="tag">📐 LangChain</span>
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 思考问题 ═══════ -->
+          <div class="card" id="questions">
+            <h2>
+              🔍 带着问题看文档 — 9道思考题
+              <span class="badge badge-red">PRE-READ</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <p class="desc">
+              在阅读下面的函数详解之前，先浏览这些问题。它们按照<strong>从具体细节到全局架构</strong>逐层递进，覆盖了本模块最关键的5个设计决策。
+            </p>
+
+            <h3>🔥 核心架构</h3>
+            <div class="highlight">
+              <strong
+                >Q1：RecursiveCharacterTextSplitter
+                到底"递归"在哪里？为什么不用简单的固定长度切分？</strong
+              ><br />
+              如果直接用 <code>text[:300]</code>、<code>text[300:600]</code>
+              切分，会有什么问题？分隔符
+              <code>["\n\n", "\n", " ", ""]</code>
+              的分层逻辑是什么——它不是在"找切分点"，而是在"找最不破坏语义的切分点"。<br />
+              <span style="color: var(--text-secondary); font-size: 0.85em"
+                >💡 提示：参看 <a href="#f4">④ _split_page</a></span
+              >
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong
+                  >RecursiveCharacterTextSplitter
+                  的"递归"体现在分隔符优先级逐级降级：</strong
+                ><br /><br />
+                它不是直接按300 token切分，而是按顺序尝试分隔符
+                <code>["\n\n", "\n", " ", ""]</code>：<br />
+                ① 先用 <code>\n\n</code>（段落边界）切分 → 检查每段是否≤300
+                token<br />
+                ② 超长的段再用 <code>\n</code>（换行/句子边界）切分<br />
+                ③ 还超长就用 <code>" "</code>（单词边界）<br />
+                ④ 最后才按字符硬切<br /><br />
+                如果直接用
+                <code>text[:300]</code>
+                固定长度切分，会出现：单词被从中间劈开（"营业收|入"）、句子被截断（"公司2024年营收为|100亿元"），导致
+                embedding 语义严重失真。RecursiveSplitter
+                的核心理念是：<strong>"在不得不切分时，选择对语义破坏最小的位置"</strong>。
+              </div>
+            </details>
+
+            <div class="highlight">
+              <strong
+                >Q2：chunk_size=300、chunk_overlap=50 是怎么定出来的？</strong
+              ><br />
+              如果改成 chunk_size=100 或 1000，下游检索会怎样变化？overlap=50
+              意味着相邻 chunk 有 16.7% 的重叠率——这个比例合理吗？为什么不设成
+              overlap=chunk_size/2？<br />
+              <span style="color: var(--text-secondary); font-size: 0.85em"
+                >💡 提示：_split_page() 的注释说 "The original text includes
+                markdown tables."——和 chunk_size 选择有什么关系？</span
+              >
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong
+                  >300 token
+                  是一个经验最优值，在"精度"和"完整性"之间取得平衡：</strong
+                ><br /><br />
+                • <strong>chunk_size=100</strong>：信息碎片化严重。一个完整的
+                Markdown 表格（约150-200
+                token）会被切成2-3块，行列关系破坏，检索时"营收100亿"可能和"2024年"分在两个chunk中<br />
+                •
+                <strong>chunk_size=1000</strong
+                >：检索精度低。用户搜"营业成本"，返回的chunk包含一整页内容（利润表+资产负债表+文字说明），LLM被大量噪音淹没<br />
+                •
+                <strong>300 token（≈150-200个中文字）</strong
+                >：刚好能容纳一个典型表格或2-3个完整段落，同时足够小以保证检索精度<br /><br />
+                <strong>overlap=50（16.7%）</strong
+                >：保证关键信息跨chunk边界的连续性。"公司2024年营收为"（chunk1末尾）+
+                "100亿元"（chunk2开头）→ 50
+                token重叠让两个chunk都包含完整句子的核心部分。<br />
+                为什么不是 overlap=150（50%）？→
+                50%的冗余过高，向量库存储膨胀3倍，检索时大量重复内容降低排序质量。
+              </div>
+            </details>
+
+            <h3>⚡ 设计决策</h3>
+            <div class="highlight">
+              <strong
+                >Q3：为什么 content 和 serialized_table 两种 chunk 共用一个递增
+                ID？</strong
+              ><br />
+              如果文本 chunk 和表格 chunk 各自独立编号（T-1, T-2 和 S-1,
+              S-2），会丢失什么信息？共用 ID 对下游 retrieval.py
+              有没有帮助？ingestion.py 建向量库时在乎这个 ID 吗？<br />
+              <span style="color: var(--text-secondary); font-size: 0.85em"
+                >💡 提示：搜索时可能同时召回同一页的文本 chunk 和表格 chunk——ID
+                顺序能告诉你原始页面的阅读顺序。</span
+              >
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>共用递增ID的核心价值是保留原页面的"阅读顺序"：</strong><br/><br/>
+                某报告第3页：用户先看到一段文字描述"公司2024年营业总收入同比增长15%"，然后看到一个表格详细列出各项收入数据。<br/>
+                在chunk数组中 → id=7（text chunk），id=8（serialized_table chunk）<br/><br/>
+                如果各自独立编号（T-1, T-2, ... 和 S-1, S-2, ...），排序后表格可能出现在文本前面，打破了原始文档的叙事逻辑。<br/><br/>
+                <strong>对下游的影响：</strong><code>ingestion.py</code> 将 id 存入 FAISS 元数据，<code>retrieval.py</code> 检索到多个chunk后可先按id排序还原顺序，再放入LLM prompt——LLM就能按"先描述再表格"的自然顺序理解信息。
+              </div>
+            </details>
+
+            <div class="highlight">
+              <strong
+                >Q4：split_all_reports()</strong                是纯串行循环。为什么这个模块不需要并行？</strong
+              ><br />
+              对比 pdf_parsing.py（有 ProcessPoolExecutor）和
+              tables_serialization.py（有 async LLM 调用），text_splitter.py
+              为什么用最简单的 for 循环？如果增加到 10000
+              个报告，瓶颈在哪里——CPU、I/O、还是内存？<br />
+              <span style="color: var(--text-secondary); font-size: 0.85em"
+                >💡 提示：tiktoken 编码和 RecursiveCharacterTextSplitter 都是纯
+                CPU 操作。一个 108 行的模块需要并行框架吗？</span
+              >
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>text_splitter 是纯 CPU 密集型、无 IO 瓶颈的模块，并行反而可能更慢：</strong><br/><br/>
+                • <strong>操作速度</strong>：单次 tiktoken 编码 ≈ 微秒级，split_text ≈ 毫秒级。10000个文件的总处理时间可能在数分钟内完成<br/>
+                • <strong>并行开销 > 收益</strong>：ProcessPoolExecutor 的进程创建（数百MB内存复制）+ pickle 序列化成本，远超 split_text 的计算量<br/>
+                • <strong>对比 pdf_parsing</strong>：Docling 需要加载CNN/OCR模型（秒级）+ GPU推理 → 并行加速明显；text_splitter 没有模型，只有字符串操作<br/>
+                • <strong>对比 tables_serialization</strong>：LLM API调用是IO等待（网络往返≈500ms）→ asyncio 并行可显著节省时间；text_splitter 没有网络IO<br/><br/>
+                真正的瓶颈是<strong>磁盘I/O</strong>（读JSON+写JSON），但Python GIL下多线程对I/O操作已足够高效。
+              </div>
+            </details>
+
+
+            <h3>📊 数据处理</h3>
+            <div class="highlight">
+              <strong
+                >Q5：_get_serialized_tables_by_page() 用 "\n".join() 拼接
+                information_blocks——这个拼接会丢失什么信息？</strong
+              ><br />
+              每个 information_block
+              原本是独立的键值对，用换行符拼接后变成一段连续文本。这段文本进向量库后，语义检索还能精确匹配到某个
+              information_block 吗？table_id 字段是存给谁看的？<br />
+              <span style="color: var(--text-secondary); font-size: 0.85em"
+                >💡 提示：参看表格 chunk
+                的四个字段——table_id、page、text、type——哪些在向量库中，哪些只在
+                JSON 中？</span
+              >
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>\n.join() 拼接会丢失两层信息：</strong><br/><br/>
+                ① <strong>结构信息丢失</strong>：每个 information_block 原本是独立的键值对（如"行：营业收入 | 列：2024年 | 值：100亿元"），拼接后变成连续段落。语义检索时，embedding 是对整段文本编码，无法精确定位到"营业收入"这个具体指标<br/>
+                ② <strong>行/列对应关系丢失</strong>：拼接只是顺序排列，原始的行列交叉关系（同一行不同列的多个值）变得模糊<br/><br/>
+                <strong>table_id 的作用</strong>：它是"回查键"。检索命中这个 chunk 后，通过 table_id 可以回到原始 <code>tables_serialization.py</code> 的 JSON 输出中，获取完整的 HTML/Markdown/JSON 三格式表格。text 进向量库做检索，table_id 做精确回查。<br/><br/>
+                <strong>四字段分工</strong>：进向量库的是 text（embedding编码）；page、table_id、type 作为 FAISS 元数据存储，不参与向量检索但用于结果过滤和排序。
+              </div>
+            </details>
+
+            <div class="highlight">
+              <strong
+                >Q6：_split_page() 生成的 chunk 只有 page、text、length_tokens</strong                三个字段。少了什么？</strong
+              ><br />
+              对比 _split_report() 补上的 id 和 type 字段——为什么这两个字段不在
+              _split_page() 内部生成？如果 _split_page() 也加上
+              id，会出现什么并发问题？这是一种什么设计思想？<br />
+              <span style="color: var(--text-secondary); font-size: 0.85em"
+                >💡 提示：有状态的函数 vs
+                无状态的函数——哪个更容易测试和复用？</span
+              >
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>这是"单一职责原则"的典型体现——纯函数 vs 编排函数的分离：</strong><br/><br/>
+                <strong>_split_page() 是纯函数（无状态）：</strong><br/>
+                • 输入：一个 page 对象 → 输出：chunks 列表<br/>
+                • 不依赖外部状态（不知道 chunk_id 现在是几号）<br/>
+                • 可以被独立单元测试：mock 一个 page，验证切分结果<br/>
+                • 可以在不同上下文中复用（比如批量处理和单页调试）<br/><br/>
+                <strong>_split_report() 是编排函数（有状态）：</strong><br/>
+                • 维护 chunk_id 计数器，协调文本chunk和表格chunk的顺序<br/>
+                • 知道全局上下文（当前是第几页、之前有多少chunk）<br/><br/>
+                如果 _split_page() 也生成 id，要传入 start_id 参数 → 变成有状态函数 → 测试时必须构造完整上下文 → 增加了耦合度。这是 <strong>关注点分离</strong> 的经典实践。
+              </div>
+            </details>
+
+            <div class="highlight">
+              <strong
+                >Q7：serialized_tables_path 找不到时会打印 Warning</strong                但继续执行。为什么不是抛异常终止？</strong
+              ><br />
+              代码中
+              <code
+                >if not serialized_tables_path.exists(): print("Warning:
+                ...")</code
+              >
+              后没有
+              raise。一份报告可以在没有序列化表格的情况下完成切分——这对下游还算"完整"吗？<br />
+              <span style="color: var(--text-secondary); font-size: 0.85em"
+                >💡 提示：_split_report() 的注释提到 "preserving markdown tables
+                in content"——表格有几种来源？</span
+              >
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>这是"优雅降级"策略——表格有两个独立来源，缺一个也不影响基本功能：</strong><br/><br/>
+                <strong>来源1 — Markdown表格（始终存在）：</strong><br/>
+                <code>pdf_parsing.py</code> 的 <code>assemble_tables()</code> 已经将表格以 Markdown 格式嵌入到每页的 text 中。<code>_split_page()</code> 切分时这些 Markdown 表格会随文本一起被切成 chunk。这是表格数据在向量库中的<strong>基本表示</strong>。<br/><br/>
+                <strong>来源2 — 序列化表格（可选附加）：</strong><br/>
+                <code>tables_serialization.py</code> 将表格转为"上下文独立的自然语言描述"（如"营业收入在2024年为100亿元"），这些 description block 作为独立的 serialized_table chunk 追加。<br/><br/>
+                <strong>为什么 Warning 而非 Exception：</strong><br/>
+                如果抛出异常 → 1000份报告中1份的序列化表格文件丢失 → 整批处理中断。<br/>
+                Warning继续 → 该报告仍有 Markdown 表格的向量表示，检索不会完全失败，只是缺少了"上下文独立"的增强描述。
+              </div>
+            </details>
+
+
+            <h3>🎯 全局视角</h3>
+            <div class="highlight">
+              <strong
+                >Q8：追踪一个 chunk 的完整旅程——从 _split_page() 到最终被 LLM
+                消费。</strong
+              ><br />
+              <code
+                >_split_page() → [哪个模块?] → [什么数据结构?] →
+                用户提问时如何被检索? → LLM prompt 里长什么样?</code
+              ><br />
+              在这个过程中，length_tokens 字段被用在哪里？type
+              字段被用在哪里？<br />
+              <span style="color: var(--text-secondary); font-size: 0.85em"
+                >💡 提示：画一条从 text_splitter.py → ingestion.py →
+                retrieval.py → LLM 的完整链。</span
+              >
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>一个 chunk 的完整生命周期（6步）：</strong><br/><br/>
+                ① <strong>text_splitter._split_page()</strong> → 输出 <code>{page:3, text:"公司2024年营收...", length_tokens:287}</code><br/>
+                ↓<br/>
+                ② <strong>text_splitter._split_report()</strong> → 补充 <code>id:42, type:"content"</code>，写入JSON文件<br/>
+                ↓<br/>
+                ③ <strong>ingestion.py</strong> → 调用 <code>OpenAI Embedding API</code> 将 text 转为 3072维向量 → 存入 <code>FAISS IndexFlatIP</code>，元数据(id, page, type, sha1_name)存入 <code>self.metadata[42]</code><br/>
+                ↓<br/>
+                ④ <strong>retrieval.py VectorRetriever</strong> → 用户query也转为向量 → <code>index.search(query_vec, k=28)</code> → 返回 <code>distances=[0.87, 0.82, ...]</code> (内积相似度) 和 <code>indices=[42, 15, 98, ...]</code> (chunk id)<br/>
+                ↓<br/>
+                ⑤ <strong>retrieval.py HybridRetriever</strong> → 通过 <code>indices</code> 从 metadata 取出对应 text → 打包成 batch → <code>LLMReranker.rerank_documents()</code> 评分 → <code>0.7×LLM + 0.3×distance</code> 融合 → 取 top 6<br/>
+                ↓<br/>
+                ⑥ <strong>LLM Prompt</strong> → 6个chunk的 text 拼接为 context → "请根据以下文档内容回答问题：\n[文档1]公司2024年营收...\n[文档2]..." → LLM 生成最终答案<br/><br/>
+                <strong>length_tokens 的使用</strong>：metadata 字段，用于估算 prompt token 消耗（确保6个chunk不超出LLM context window）<br/>
+                <strong>type 字段的使用</strong>：retrieval 结果中区分 content chunk 和 serialized_table chunk，可能用于调整 LLM 的阅读策略
+              </div>
+            </details>
+
+            <div class="highlight">
+              <strong>Q9：如果必须删掉一个函数，哪个破坏最小？哪个最大？</strong
+              ><br />
+              删掉 count_tokens()：下游谁会受影响？删掉
+              _get_serialized_tables_by_page()：表格已经在 Markdown
+              文本里了，够用吗？删掉 _split_report()：还能叫 text_splitter
+              吗？删掉 split_all_reports()：能用 5 行代码替代吗？<br />把这四个函数按"可替代性"从高到低排序，给出你的理由。
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>按"可替代性"从高到低排序（删掉影响从小到大）：</strong><br/><br/>
+                ① <strong>split_all_reports() — 可替代性最高</strong><br/>
+                只是一个 for 循环 + 文件读写，5行代码即可替代：<br/>
+                <code>for path in dir.glob("*.json"): data=json.load(open(path)); ...</code><br/>
+                删掉影响：需要调用方自己写遍历逻辑，模块失去"一键批处理"便利性<br/><br/>
+                ② <strong>count_tokens() — 可替代性高</strong><br/>
+                单行代码 <code>len(tiktoken.get_encoding("o200k_base").encode(text))</code> 即可替代<br/>
+                删掉影响：每个 chunk 不再记录 length_tokens，下游无法做 token 预算估算<br/><br/>
+                ③ <strong>_get_serialized_tables_by_page() — 可替代性中等</strong><br/>
+                表格的两个来源（Markdown + 序列化描述）中只丢失了增强描述部分<br/>
+                删掉影响：检索结果缺少"上下文独立的自然语言表格描述"，但 Markdown 表格仍在 text 中可被召回<br/><br/>
+                ④ <strong>_split_page() — 可替代性低</strong><br/>
+                封装了 RecursiveCharacterTextSplitter 的配置和调用，删掉后需要每个调用方自己配置<br/>
+                删掉影响：_split_report 的核心切分逻辑消失，但可用内联替代<br/><br/>
+                ⑤ <strong>_split_report() — 不可替代（破坏最大）</strong><br/>
+                这是整个模块的"大脑"：协调文本切分、表格混入、ID分配、type标记。删掉它 → 所有 chunk 失去 id/type → ingestion 无法建索引 → 整个 RAG 检索瘫痪
+              </div>
+            </details>
+
+
+            <div class="highlight tip" style="margin-top: 20px">
+              <strong>👶 建议阅读顺序：</strong>先带着 Q1-Q2 看
+              ③④（核心切分逻辑），再带着 Q3-Q4 看 ②③（设计决策），最后带着 Q5-Q9
+              回顾全文。答案散落在各个卡片的"大白话"解释和"高亮提示"中。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 〇、整体架构 ═══════ -->
+          <div class="card" id="ch0">
+            <h2>
+              🗺️ 〇、整体架构与函数索引
+              <span class="badge badge-blue">OVERVIEW</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <p class="desc">
+              本模块是 RAG
+              管线的<strong>第3道工序</strong>——它把上一个模块（<code>parsed_reports_merging.py</code>）处理好的"每页一段长文本"，
+              <strong>切分成固定 token 长度的小块（chunk）</strong
+              >，并可以<strong>混入序列化表格</strong>。切分后的 chunk 会被
+              <code>ingestion.py</code> 建入向量库。
+            </p>
+
+            <!-- 上下游关系 -->
+            <div class="pipe-diagram">
+              <div class="pipe-node in">
+                📄 pdf_parsing.py<br /><small>PDF→JSON</small>
+              </div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node in">
+                🔄 parsed_reports_merging.py<br /><small>JSON→页文本</small>
+              </div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node core">
+                ✂️ text_splitter.py<br /><small>页文本→chunks</small>
+              </div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node out">
+                🧠 ingestion.py<br /><small>chunks→向量库</small>
+              </div>
+            </div>
+
+            <h3>📋 函数调用关系</h3>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">📐 调用关系图</span>
+              </div>
+              <pre>
+② split_all_reports()  ←── 外部入口
+    │
+    └─→ ③ _split_report()
+           │
+           ├─→ ⑤ _get_serialized_tables_by_page()  [可选：加载序列化表格]
+           │       └─→ ① count_tokens()
+           │
+           └─→ ④ _split_page()  [对每一页执行]
+                   └─→ ① count_tokens()
+              </pre>
+            </div>
+
+            <h3>📋 函数索引</h3>
+            <table class="data-table">
+              <tr>
+                <th>#</th>
+                <th>函数名</th>
+                <th>一句话作用</th>
+                <th>优先级</th>
+              </tr>
+              <tr>
+                <td>①</td>
+                <td>
+                  <a href="#f1"><code>count_tokens()</code></a>
+                </td>
+                <td>计算一段文本的 token 数量</td>
+                <td>⭐</td>
+              </tr>
+              <tr>
+                <td>②</td>
+                <td>
+                  <a href="#f2"><code>split_all_reports()</code></a>
+                </td>
+                <td>入口：批量处理目录下所有报告 JSON</td>
+                <td>🔥</td>
+              </tr>
+              <tr>
+                <td>③</td>
+                <td>
+                  <a href="#f3"><code>_split_report()</code></a>
+                </td>
+                <td>核心：将一份报告按页切分，混入表格 chunks</td>
+                <td>🔥</td>
+              </tr>
+              <tr>
+                <td>④</td>
+                <td>
+                  <a href="#f4"><code>_split_page()</code></a>
+                </td>
+                <td>使用 RecursiveCharacterTextSplitter 切分单页文本</td>
+                <td>🔥</td>
+              </tr>
+              <tr>
+                <td>⑤</td>
+                <td>
+                  <a href="#f5"
+                    ><code>_get_serialized_tables_by_page()</code></a
+                  >
+                </td>
+                <td>从序列化表格报告中提取每页表格文本</td>
+                <td>⭐</td>
+              </tr>
+            </table>
+
+            <div class="highlight tip">
+              <strong>👶 新手阅读建议：</strong>先看 ③
+              <code>_split_report</code>（理解整体切分逻辑）→ 再看 ④
+              <code>_split_page</code>（理解单个页面怎么切）→ 最后看 ②
+              <code>split_all_reports</code>（理解批量入口）。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ① count_tokens ═══════ -->
+          <div class="card" id="f1">
+            <h2>
+              ① <code>count_tokens()</code> — Token 计数器
+              <span class="badge badge-green">UTILITY</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              给一段文字，告诉你有<strong>多少个 token</strong>（GPT
+              眼中的"字数"）。 它用的是 OpenAI 的
+              <code>tiktoken</code> 库，编码器是 <code>o200k_base</code>（GPT-4o
+              使用的编码）， 所以算出来的 token 数和调用 GPT-4o API
+              时计费的方式<strong>完全一致</strong>。
+            </p>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def count_tokens(self, string: str, encoding_name="o200k_base"):
+    encoding = tiktoken.get_encoding(encoding_name)  # 获取GPT-4o的编码器
+    tokens = encoding.encode(string)                  # 文本 → token编号列表
+    token_count = len(tokens)                         # 统计数量
+    return token_count</pre
+              >
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">
+                📖 为什么用 o200k_base 而不是 cl100k_base？
+              </div>
+              <ul>
+                <li><code>cl100k_base</code> 是 GPT-4/GPT-3.5 的编码器</li>
+                <li>
+                  <code>o200k_base</code> 是
+                  <strong>GPT-4o</strong> 的编码器，对中文等多语言更高效
+                </li>
+                <li>
+                  这个项目最终用 GPT-4o 做问答，所以用
+                  <code>o200k_base</code> 才能保证 chunk 大小和实际 API 计费一致
+                </li>
+              </ul>
+            </div>
+
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>
+              被 <code>_split_page()</code> 和
+              <code>_get_serialized_tables_by_page()</code> 调用。 每个 chunk
+              生成后都会调用它来记录 <code>length_tokens</code> 字段。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ② split_all_reports ═══════ -->
+          <div class="card" id="f2">
+            <h2>
+              ② <code>split_all_reports()</code> — 批量入口
+              <span class="badge badge-orange">ENTRY</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              这是<strong>外部调用的入口函数</strong>。它扫描一个目录下的所有
+              <code>.json</code> 文件，
+              <strong>逐个读取、切分、保存</strong
+              >。如果提供了序列化表格目录，还会为每个报告找到对应的表格文件。
+            </p>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码 — 三步循环</span>
+              </div>
+              <pre>
+def split_all_reports(self, all_report_dir: Path, output_dir: Path,
+                      serialized_tables_dir: Optional[Path] = None):
+    all_report_paths = list(all_report_dir.glob("*.json"))   # ① 收集所有JSON文件
+
+    for report_path in all_report_paths:
+        # ② 查找对应的序列化表格文件（可选）
+        serialized_tables_path = None
+        if serialized_tables_dir is not None:
+            serialized_tables_path = serialized_tables_dir / report_path.name
+
+        # ③ 读取 → 切分 → 保存
+        with open(report_path, 'r', encoding='utf-8') as file:
+            report_data = json.load(file)
+        updated_report = self._split_report(report_data, serialized_tables_path)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        with open(output_dir / report_path.name, 'w', encoding='utf-8') as file:
+            json.dump(updated_report, file, indent=2, ensure_ascii=False)</pre
+              >
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">📖 参数详解</div>
+              <ul>
+                <li>
+                  <strong>all_report_dir：</strong
+                  >上一道工序（<code>parsed_reports_merging.py</code>）输出的
+                  JSON 所在目录
+                </li>
+                <li>
+                  <strong>output_dir：</strong>切分后的 JSON 输出到哪里（下游
+                  <code>ingestion.py</code> 会从这里读）
+                </li>
+                <li>
+                  <strong>serialized_tables_dir：</strong>可选。如果提供了
+                  <code>tables_serialization.py</code> 的输出目录，就会把表格
+                  chunks 混入文本 chunks 中
+                </li>
+              </ul>
+            </div>
+
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>
+              RAG 管线的第3步。上游输入来自
+              <code>parsed_reports_merging.py</code>，输出给
+              <code>ingestion.py</code>。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ③ _split_report ═══════ -->
+          <div class="card" id="f3">
+            <h2>
+              ③ <code>_split_report()</code> — 核心切分逻辑
+              <span class="badge badge-orange">CORE</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              <strong>这是整个模块的灵魂函数</strong>。它对一份报告做两件事： ①
+              把每页文本切成小块（chunk）；②
+              如果那一页有序列化表格，把表格也作为独立 chunk 插入。 最后给所有
+              chunk 分配<strong>全局唯一递增 ID</strong>。
+            </p>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码 — 双重循环</span>
+              </div>
+              <pre>
+def _split_report(self, file_content, serialized_tables_report_path=None):
+    chunks = []
+    chunk_id = 0
+
+    # 预先加载序列化表格，按页码分组（可选）
+    tables_by_page = {}
+    if serialized_tables_report_path is not None:
+        with open(serialized_tables_report_path, 'r') as f:
+            parsed_report = json.load(f)
+        tables_by_page = self._get_serialized_tables_by_page(
+            parsed_report.get('tables', []))
+
+    for page in file_content['content']['pages']:
+        # ─── ① 对本页文本切分成 chunks ───
+        page_chunks = self._split_page(page)
+        for chunk in page_chunks:
+            chunk['id'] = chunk_id
+            chunk['type'] = 'content'        # 标记为"文本类型"
+            chunk_id += 1
+            chunks.append(chunk)
+
+        # ─── ② 如果本页有序列化表格，追加为独立 chunks ───
+        if tables_by_page and page['page'] in tables_by_page:
+            for table in tables_by_page[page['page']]:
+                table['id'] = chunk_id
+                table['type'] = 'serialized_table'  # 标记为"表格类型"
+                chunk_id += 1
+                chunks.append(table)
+
+    file_content['content']['chunks'] = chunks
+    return file_content</pre
+              >
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">📖 两种 chunk 类型</div>
+              <ul>
+                <li>
+                  <strong>content（文本 chunk）：</strong
+                  >本页文本切出来的小块，包含
+                  <code>page</code>、<code>text</code>、<code
+                    >length_tokens</code
+                  >
+                </li>
+                <li>
+                  <strong>serialized_table（表格 chunk）：</strong>从
+                  <code>tables_serialization.py</code> 来的，包含
+                  <code>page</code
+                  >、<code>text</code>（表格的描述性文本）、<code
+                    >table_id</code
+                  >
+                </li>
+                <li>
+                  两种 chunk
+                  <strong>共享同一个递增 ID</strong>，确保检索时能按顺序还原
+                </li>
+              </ul>
+            </div>
+
+            <div class="highlight">
+              <strong>💡 为什么要把表格单独作为 chunk？</strong><br />
+              年报中的财务报表包含大量数字（营收、利润等），这些数字往往是问题的答案。
+              如果把表格和正文混在一起切分，表格会被切断，导致检索时找不到完整数据。
+              单独作为 chunk
+              可以<strong>保证每个表格是一个完整的检索单元</strong>。
+            </div>
+
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>
+              被 <code>split_all_reports()</code> 调用。它的输出是填充了
+              <code>chunks</code> 数组的完整报告 JSON。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ④ _split_page ═══════ -->
+          <div class="card" id="f4">
+            <h2>
+              ④ <code>_split_page()</code> — 单页文本切分
+              <span class="badge badge-orange">CORE</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              把一页的长文本<strong>切成多个小块（chunk）</strong>，每个 chunk
+              约 <strong>300 token</strong>， 相邻 chunk 之间<strong
+                >重叠 50 token</strong
+              >。用的是 LangChain 的
+              <code>RecursiveCharacterTextSplitter</code>。
+            </p>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def _split_page(self, page, chunk_size=300, chunk_overlap=50):
+    # 创建基于 GPT-4o tokenizer 的分隔器
+    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+        model_name="gpt-4o",        # 使用GPT-4o的tokenizer
+        chunk_size=chunk_size,      # 每个chunk最多300 tokens
+        chunk_overlap=chunk_overlap # 相邻chunk重叠50 tokens
+    )
+    chunks = text_splitter.split_text(page['text'])
+
+    chunks_with_meta = []
+    for chunk in chunks:
+        chunks_with_meta.append({
+            "page": page['page'],              # 保留页码
+            "length_tokens": self.count_tokens(chunk),  # 记录token数
+            "text": chunk                       # 切分后的文本
+        })
+    return chunks_with_meta</pre
+              >
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">
+                📖 RecursiveCharacterTextSplitter 的工作原理
+              </div>
+              <ol>
+                <li>
+                  它用一组<strong>分隔符优先级</strong>来切分：先按段落（<code>\n\n</code>），再按换行（<code>\n</code>），再按空格，最后按字符
+                </li>
+                <li>
+                  每次切分后检查 chunk 是否超过 300
+                  token，超了就继续用下一级分隔符再切
+                </li>
+                <li>
+                  这样能<strong>尽量在语义边界</strong>处切分，而不是把一个词劈成两半
+                </li>
+              </ol>
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">📖 为什么需要重叠（overlap）？</div>
+              <p style="font-size: 0.9em">
+                假设一句话是："<em>公司2024年营收为</em><strong>100亿元</strong
+                ><em>，同比增长20%。</em>"<br />
+                不加重叠：chunk1 = "公司2024年营收为"，chunk2 =
+                "100亿元，同比增长20%。"→ 用户搜"2024年营收"只能找到
+                chunk1，但答案"100亿元"在 chunk2，<strong>检索不到！</strong
+                ><br />
+                加了50 token重叠：chunk1 = "公司2024年营收为100亿"，chunk2 =
+                "营收为100亿元，同比增长20%。"→
+                <strong>两个chunk都包含关键信息</strong>，检索召回率更高。
+              </p>
+            </div>
+
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>
+              被
+              <code>_split_report()</code>
+              对每一页调用。是实际执行切分操作的"刀片"。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ⑤ _get_serialized_tables_by_page ═══════ -->
+          <div class="card" id="f5">
+            <h2>
+              ⑤ <code>_get_serialized_tables_by_page()</code> — 表格按页分组
+              <span class="badge badge-purple">UTILITY</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个函数做什么？（大白话）</h3>
+            <p class="desc">
+              从 <code>tables_serialization.py</code> 的输出中读取表格数据，
+              把每个表格的
+              <code>information_blocks</code
+              >（描述表格内容的文本块）拼接成一段文字，
+              然后<strong>按页码分组</strong>。这样
+              <code>_split_report()</code>
+              就能快速知道"第3页有哪些表格需要追加"。
+            </p>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 关键代码</span>
+              </div>
+              <pre>
+def _get_serialized_tables_by_page(self, tables):
+    tables_by_page = {}
+    for table in tables:
+        if 'serialized' not in table:       # 跳过未序列化的表格
+            continue
+
+        page = table['page']
+        if page not in tables_by_page:
+            tables_by_page[page] = []
+
+        # 核心：将 information_blocks 拼接为一段文本
+        table_text = "\n".join(
+            block["information_block"]
+            for block in table["serialized"]["information_blocks"]
+        )
+
+        tables_by_page[page].append({
+            "page": page,
+            "text": table_text,                          # 拼接后的描述文本
+            "table_id": table["table_id"],               # 表格编号
+            "length_tokens": self.count_tokens(table_text)  # token数
+        })
+
+    return tables_by_page
+    # 返回：{3: [{page:3, text:"...", table_id:5, ...}], 5: [...]}</pre
+              >
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">📖 information_block 是什么？</div>
+              <p style="font-size: 0.9em">
+                在
+                <code>tables_serialization.py</code>
+                中，每个表格被"序列化"为一组
+                <strong>information_block</strong>， 比如：<br />
+                <code>"表格标题：2024年度合并利润表"</code><br />
+                <code>"行：营业收入 | 列：2024年 | 值：100亿元"</code><br />
+                这些块拼起来就是对这个表格的<strong>自然语言描述</strong>，可以直接当作文本
+                chunk 存入向量库。
+              </p>
+            </div>
+
+            <div class="highlight">
+              <strong>📍 它在流程中的位置：</strong>
+              被
+              <code>_split_report()</code>
+              调用（仅当提供了序列化表格路径时）。内部调用了
+              <code>count_tokens()</code>。
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 总结 ═══════ -->
+          <div class="card" id="summary">
+            <h2>
+              🌊 总结：完整数据流 <span class="badge badge-cyan">SUMMARY</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">📐 输入 → 处理 → 输出</span>
+              </div>
+              <pre>
+输入 JSON（来自 parsed_reports_merging.py）：
+{
+  "metainfo": { "sha1_name": "abc123...", "pages_amount": 42, ... },
+  "content": {
+    "chunks": null,                           ← 初始为空！
+    "pages": [
+      { "page": 1, "text": "第1页的全部文本内容，可能很长很长..." },
+      { "page": 2, "text": "第2页的全部文本内容..." },
+      ...
+    ]
+  }
+}
+        │
+        ▼  ✂️ text_splitter.py
+        │
+        ▼
+输出 JSON：
+{
+  "metainfo": { ... },
+  "content": {
+    "chunks": [                               ← 填充完毕！
+      { "id": 0, "type": "content",  "page": 1, "text": "chunk文本...", "length_tokens": 287 },
+      { "id": 1, "type": "content",  "page": 1, "text": "chunk文本...", "length_tokens": 295 },
+      { "id": 2, "type": "serialized_table", "page": 1, "text": "表格描述...", "table_id": 0, "length_tokens": 150 },
+      { "id": 3, "type": "content",  "page": 2, "text": "chunk文本...", "length_tokens": 300 },
+      ...
+    ],
+    "pages": [ ... ]
+  }
+}
+              </pre>
+            </div>
+
+            <h3>📊 关键参数总结</h3>
+            <table class="data-table">
+              <tr>
+                <th>参数</th>
+                <th>值</th>
+                <th>含义</th>
+              </tr>
+              <tr>
+                <td>chunk_size</td>
+                <td>300 tokens</td>
+                <td>
+                  每个chunk最多300个GPT-4o
+                  token（约200-250个英文单词或150-200个中文字）
+                </td>
+              </tr>
+              <tr>
+                <td>chunk_overlap</td>
+                <td>50 tokens</td>
+                <td>相邻chunk重叠50 token，防止关键信息被切断</td>
+              </tr>
+              <tr>
+                <td>tokenizer</td>
+                <td>o200k_base (gpt-4o)</td>
+                <td>与下游LLM计费方式一致</td>
+              </tr>
+              <tr>
+                <td>splitter</td>
+                <td>RecursiveCharacterTextSplitter</td>
+                <td>优先在段落/句子边界切分，保持语义完整</td>
+              </tr>
+            </table>
+
+            <div class="highlight tip">
+              <strong>👶 新手总结：</strong
+              ><code>text_splitter.py</code> 做的事情可以用一句话概括——<br />
+              <strong
+                >"把每页长文本切成300 token的小块，相邻块重叠50
+                token，如果某页有表格就插进去"</strong
+              >。<br /><br />
+              它虽然只有108行代码，但在 RAG
+              管线中非常关键：<strong>切得太大</strong>→检索精度低；<strong>切得太小</strong>→语义丢失。
+              300 token 是一个经验值，在"精度"和"完整性"之间取得了平衡。
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <footer>
+            text_splitter.py · LangChain RecursiveCharacterTextSplitter +
+            tiktoken · RAG-Challenge-2 讲解页面
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

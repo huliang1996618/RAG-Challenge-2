@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>retrieval.py — 检索系统详解</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --card-bg: #161b22;
+        --border: #30363d;
+        --text: #c9d1d9;
+        --text-secondary: #8b949e;
+        --accent: #58a6ff;
+        --green: #3fb950;
+        --orange: #d2991d;
+        --purple: #a371f7;
+        --red: #f85149;
+        --cyan: #39d2c0;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        line-height: 1.7;
+        min-height: 100vh;
+      }
+      .wrapper {
+        display: flex;
+        min-height: 100vh;
+      }
+      .toc-sidebar {
+        width: 260px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        background: rgba(22, 27, 34, 0.95);
+        border-right: 1px solid var(--border);
+        padding: 24px 16px;
+        backdrop-filter: blur(8px);
+        z-index: 10;
+      }
+      .toc-sidebar h3 {
+        font-size: 0.85em;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+      }
+      .toc-legend {
+        display: flex;
+        gap: 12px;
+        font-size: 0.65em;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      .toc-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .toc-list a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.82em;
+        transition: all 0.2s;
+      }
+      .toc-list a:hover {
+        background: rgba(88, 166, 255, 0.08);
+        color: var(--text);
+      }
+      .toc-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        background: var(--border);
+        font-size: 0.75em;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .prio-fire {
+        color: #f85149;
+        font-size: 0.7em;
+        margin-left: auto;
+      }
+      .prio-star {
+        color: #d2991d;
+        font-size: 0.7em;
+        margin-left: auto;
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+        padding-bottom: 60px;
+      }
+      .container {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 24px 32px;
+      }
+      .hero {
+        text-align: center;
+        padding: 40px 20px 30px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 30px;
+      }
+      .hero .icon {
+        font-size: 3em;
+        margin-bottom: 12px;
+      }
+      .hero h1 {
+        font-size: 1.8em;
+        margin-bottom: 8px;
+      }
+      .hero .subtitle {
+        color: var(--text-secondary);
+        font-size: 0.95em;
+      }
+      .tag-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 16px;
+      }
+      .tag {
+        background: rgba(88, 166, 255, 0.1);
+        border: 1px solid rgba(88, 166, 255, 0.2);
+        color: var(--accent);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.78em;
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px 32px;
+        margin-bottom: 24px;
+        scroll-margin-top: 20px;
+      }
+      .card h2 {
+        font-size: 1.15em;
+        margin-bottom: 6px;
+      }
+      .card h2 code {
+        font-size: 0.95em;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      .card h3 {
+        font-size: 1em;
+        margin: 20px 0 8px;
+        color: var(--accent);
+      }
+      .accent-bar {
+        width: 48px;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), transparent);
+        border-radius: 2px;
+        margin-bottom: 16px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.72em;
+        font-weight: 600;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+      .badge-blue {
+        background: rgba(88, 166, 255, 0.15);
+        color: var(--accent);
+      }
+      .badge-green {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--green);
+      }
+      .badge-orange {
+        background: rgba(210, 153, 29, 0.15);
+        color: var(--orange);
+      }
+      .badge-purple {
+        background: rgba(163, 113, 247, 0.15);
+        color: var(--purple);
+      }
+      .badge-red {
+        background: rgba(248, 81, 73, 0.15);
+        color: var(--red);
+      }
+      .badge-cyan {
+        background: rgba(57, 210, 192, 0.15);
+        color: var(--cyan);
+      }
+      .code-block {
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin: 16px 0;
+        overflow: hidden;
+      }
+      .code-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.78em;
+        color: var(--text-secondary);
+      }
+      .lang {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .code-block pre {
+        padding: 14px 16px;
+        margin: 0;
+        overflow-x: auto;
+        font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", monospace;
+        font-size: 0.8em;
+        line-height: 1.55;
+        white-space: pre;
+        color: #c9d1d9;
+      }
+      .explain-box {
+        background: rgba(88, 166, 255, 0.04);
+        border: 1px solid rgba(88, 166, 255, 0.15);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 16px 0;
+      }
+      .explain-title {
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 8px;
+        font-size: 0.9em;
+      }
+      .explain-box ul {
+        padding-left: 20px;
+      }
+      .explain-box li {
+        margin: 6px 0;
+        font-size: 0.9em;
+      }
+      .explain-box ol {
+        padding-left: 20px;
+      }
+      .explain-box ol li {
+        margin: 6px 0;
+        font-size: 0.9em;
+      }
+      .highlight {
+        background: rgba(88, 166, 255, 0.05);
+        border-left: 3px solid var(--accent);
+        padding: 12px 16px;
+        border-radius: 0 6px 6px 0;
+        margin: 14px 0;
+        font-size: 0.88em;
+      }
+      .highlight.tip {
+        border-left-color: var(--green);
+      }
+      .highlight.warn {
+        border-left-color: var(--orange);
+      }
+      .highlight.red {
+        border-left-color: var(--red);
+      }
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0;
+        font-size: 0.85em;
+      }
+      .data-table th {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 2px solid var(--border);
+        color: var(--text-secondary);
+      }
+      .data-table td {
+        padding: 7px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .desc {
+        color: var(--text-secondary);
+        font-size: 0.9em;
+        margin-bottom: 12px;
+      }
+      .desc strong {
+        color: var(--text);
+      }
+      .slide-divider {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 12px 0 24px;
+        opacity: 0.4;
+      }
+      .slide-divider::before,
+      .slide-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border),
+          transparent
+        );
+      }
+      .slide-divider .divider-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--accent);
+      }
+      .pipe-diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px 0;
+      }
+      .pipe-node {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 0.85em;
+        font-weight: 600;
+        text-align: center;
+      }
+      .pipe-node.in {
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .pipe-node.out {
+        border-color: var(--orange);
+        color: var(--orange);
+      }
+      .pipe-node.core {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .pipe-arrow {
+        color: var(--text-secondary);
+        font-size: 1.2em;
+        font-weight: 700;
+      }
+      .flow-step {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        margin: 10px 0;
+      }
+      .flow-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.8em;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .flow-num.green {
+        background: var(--green);
+      }
+      .flow-num.orange {
+        background: var(--orange);
+      }
+      .flow-num.purple {
+        background: var(--purple);
+      }
+
+      /* ── 答案展开/折叠 ── */
+      details.answer { margin: 10px 0 16px; }
+      details.answer summary {
+        cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 14px; border-radius: 6px; font-size: 0.82em; font-weight: 600;
+        color: var(--accent); background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2);
+        transition: all 0.2s;
+      }
+      details.answer summary:hover { background: rgba(88,166,255,0.15); }
+      details.answer[open] summary { border-radius: 6px 6px 0 0; margin-bottom: 0; }
+      details.answer .answer-body {
+        padding: 14px 16px; margin: 0; background: rgba(88,166,255,0.03);
+        border: 1px solid rgba(88,166,255,0.12); border-top: none; border-radius: 0 0 8px 8px;
+        font-size: 0.85em; line-height: 1.75; color: var(--text-secondary);
+      }
+      details.answer .answer-body strong { color: var(--text); }
+      details.answer .answer-body code {
+        background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 0.92em;
+      }
+      details.answer .answer-body ul, details.answer .answer-body ol { padding-left: 20px; margin: 6px 0; }
+      details.answer .answer-body li { margin: 4px 0; }
+      details.answer .answer-body pre {
+        background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 6px;
+        padding: 10px 14px; margin: 10px 0; overflow-x: auto; font-size: 0.85em;
+        line-height: 1.45; color: #e6edf3;
+      }
+      details.answer .answer-body pre code { background: none; padding: 0; font-size: 1em; }
+    </style>    </style>      .flow-content {
+        font-size: 0.9em;
+      }
+      .flow-content strong {
+        color: var(--accent);
+      }
+      footer {
+        text-align: center;
+        padding: 30px 20px;
+        border-top: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: 0.82em;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- ═══════ 侧边栏 ═══════ -->
+      <nav class="toc-sidebar">
+        <h3>📑 目录导航</h3>
+        <div class="toc-legend">
+          <span>🔥 核心类</span><span>⭐ 重要方法</span><span>— 辅助方法</span>
+        </div>
+        <div class="toc-list">
+          <a href="#questions"
+            ><span class="toc-num">?</span>思考问题<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#ch0"
+            ><span class="toc-num">〇</span>架构概览与检索流程<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#ch1"
+            ><span class="toc-num">①</span>BM25Retriever<span class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#ch2"
+            ><span class="toc-num">②</span>VectorRetriever<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#ch2a">&nbsp;&nbsp;└ _load_dbs</a>
+          <a href="#ch2b">&nbsp;&nbsp;└ retrieve_by_company_name</a>
+          <a href="#ch2c">&nbsp;&nbsp;└ retrieve_all</a>
+          <a href="#ch2d">&nbsp;&nbsp;└ get_strings_cosine_similarity</a>
+          <a href="#ch3"
+            ><span class="toc-num">③</span>HybridRetriever<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#ch4"><span class="toc-num">④</span>三种检索器对比</a>
+        </div>
+      </nav>
+
+      <div class="main">
+        <div class="container">
+          <!-- Hero -->
+          <div class="hero">
+            <div class="icon">🔍</div>
+            <h1>retrieval.py — 检索系统逐类详解</h1>
+            <p class="subtitle">
+              3 个检索器类 · 8 个方法 · BM25 关键词检索 → 向量语义检索 → 混合
+              LLM 重排序
+            </p>
+            <div class="tag-row">
+              <span class="tag">🔍 BM25</span>
+              <span class="tag">📐 FAISS</span>
+              <span class="tag">🧠 Embedding</span>
+              <span class="tag">🤖 LLM Reranking</span>
+              <span class="tag">🔀 混合检索</span>
+              <span class="tag">📊 加权融合</span>
+            </div>
+          </div>
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 思考问题 ═══════ -->
+          <div class="card" id="questions">
+            <h2>
+              🤔 带着问题看文档 — 10 个思考题
+              <span class="badge badge-red">WARM-UP</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <p class="desc">
+              阅读本讲解文档之前，先带着下面这些问题去源码中寻找答案。问题按<strong>难度递进</strong>排列，覆盖从具体函数到全局架构的所有关键设计决策。
+            </p>
+
+            <!-- Q1 -->
+            <h3>🔥 Q1：为什么有三个 Retriever 类，而不是一个？</h3>
+            <p class="desc">
+              <code>BM25Retriever</code>、<code>VectorRetriever</code>、<code
+                >HybridRetriever</code
+              >
+              各自独立实现了
+              <code>retrieve_by_company_name()</code
+              >。它们分别解决什么问题？为什么不用一个统一的
+              <code>Retriever</code> 基类 + 策略模式？
+            </p>
+            <p class="desc" style="font-size: 0.82em; color: var(--orange)">
+              💡 提示：看看每个类的 <code>__init__</code> 需要什么资源（BM25
+              索引、FAISS 索引、LLMReranker）。它们的"重量"相同吗？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>三个 Retriever 的"重量级"差异巨大——统一基类反而增加耦合。看各自的构造器：</strong><br/><br/>
+
+                <strong>BM25Retriever — 最轻量，纯文件IO</strong>
+                <pre><code>class BM25Retriever:
+    def __init__(self, bm25_db_dir: Path, documents_dir: Path):
+        self.bm25_db_dir = bm25_db_dir      # ← *.pkl 文件目录
+        self.documents_dir = documents_dir   # ← *.json 文档目录
+        # 无 API Key、无模型加载、无内存预热
+        # 检索时才 load pickle 文件</code></pre>
+                BM25 索引是纯权重矩阵（几十MB），不需要网络，不需要 GPU。每次查询 <code>retrieve_by_company_name()</code> 内部才 <code>pickle.load()</code> 加载对应公司的索引。<br/><br/>
+
+                <strong>VectorRetriever — 中等重量，需要 API + 内存预加载</strong>
+                <pre><code>class VectorRetriever:
+    def __init__(self, vector_db_dir, documents_dir):
+        self.vector_db_dir = vector_db_dir
+        self.documents_dir = documents_dir
+        self.all_dbs = self._load_dbs()   # ← 启动时加载所有 FAISS 索引到内存
+        self.llm = self._set_up_llm()     # ← 创建 OpenAI 客户端（API Key）</code></pre>
+                <code>_load_dbs()</code> 在 <strong>构造时</strong> 就扫描两个目录，按文件名匹配 <code>报告A.json ↔ 报告A.faiss</code>，全部读入内存。如果有 50 家公司报告，构造时就把 50 个 FAISS 索引全部加载完——启动慢但检索快。<br/><br/>
+
+                <strong>HybridRetriever — 最重量级，组合向量检索 + LLM 精排</strong>
+                <pre><code>class HybridRetriever:
+    def __init__(self, vector_db_dir, documents_dir):
+        self.vector_retriever = VectorRetriever(vector_db_dir, documents_dir)
+        self.reranker = LLMReranker()  # ← 又一个 OpenAI 客户端 + prompt 模板</code></pre>
+                LLMReranker 内部也创建了 <code>OpenAI()</code>，所以 HybridRetriever 实际持有 <strong>两个</strong> OpenAI 客户端（VectorRetriever 的 + Reranker 的）。这还不是最重的——每次检索会额外调用 14~28 次 GPT-4o-mini API（见 Q3）。<br/><br/>
+
+                <strong>为什么不用基类 + 策略模式？</strong><br/>
+                如果写一个 <code>class Retriever(ABC)</code>，强制要求 <code>retrieve_by_company_name()</code> 签名一致，会导致：<br/>
+                ① BM25Retriever 被迫持有 <code>llm</code> 属性（用不到）→ 空依赖污染<br/>
+                ② HybridRetriever 被迫接受 <code>bm25_db_dir</code> 参数（用不到）→ 参数冗余<br/>
+                ③ 三者的 <code>distance</code> 字段含义完全不同：BM25=词频分、向量=余弦相似度、Hybrid=LLM+向量融合分 → 统一接口反而误导下游消费者<br/><br/>
+
+                <strong>实际做法是"组合 + 独立接口"</strong>：VectorRetriever 被 HybridRetriever 组合使用，BM25Retriever 独立存在。这不是设计模式的失败，而是对"不必要的抽象"的克制。
+              </div>
+            </details>
+
+
+            <!-- Q2 -->
+            <h3>🔥 Q2：HybridRetriever 为什么不用 BM25？</h3>
+            <p class="desc">
+              <code>HybridRetriever</code> 的第一阶段只调用了
+              <code>VectorRetriever</code>，完全没有用到
+              <code>BM25Retriever</code>。<code>BM25Retriever</code> 和
+              <code>BM25Ingestor</code>（在
+              <code>ingestion.py</code>
+              中）都已经完整实现了——那它存在的意义是什么？一个真正的
+              "Hybrid"（混合检索）应该是 BM25 +
+              向量双路召回再融合，但这里却绕过了
+              BM25。这是设计疏忽还是有意为之？
+            </p>
+            <p class="desc" style="font-size: 0.82em; color: var(--orange)">
+              💡 提示：看看
+              <code>reranker.rerank_documents()</code> 的输入输出格式和
+              BM25Retriever 的返回格式，两者能直接对接吗？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>HybridRetriever 只用了 Vector 作为第一阶段召回，BM25 被搁置。这是三个原因叠加的结果：</strong><br/><br/>
+
+                <strong>看 HybridRetriever.retrieve_by_company_name() 的实际代码：</strong>
+                <pre><code>def retrieve_by_company_name(self, company_name, query,
+    llm_reranking_sample_size=28, documents_batch_size=2, top_n=6,
+    llm_weight=0.7, return_parent_pages=False):
+
+    # 第一阶段：只用向量检索（完全不碰 BM25）
+    vector_results = self.vector_retriever.retrieve_by_company_name(
+        company_name=company_name, query=query,
+        top_n=llm_reranking_sample_size,  # 28 个候选
+        return_parent_pages=return_parent_pages
+    )
+
+    # 第二阶段：LLM 精排
+    reranked_results = self.reranker.rerank_documents(
+        query=query, documents=vector_results,
+        documents_batch_size=documents_batch_size, llm_weight=llm_weight
+    )
+    return reranked_results[:top_n]  # 取前 6</code></pre>
+
+                <strong>原因 1 — BM25 返回格式不兼容：</strong><br/>
+                BM25Retriever 返回的是裸 dict：
+                <pre><code>[{"distance": 7.23, "page": 42, "text": "公司营收..."}]</code></pre>
+                而 <code>reranker.rerank_documents()</code> 需要从 dict 中取 <code>doc['text']</code> 作为 LLM 评分输入、用 <code>doc['distance']</code> 做融合。BM25 的 <code>distance</code>（词频分，范围 0~N）和向量的 <code>distance</code>（余弦相似度，范围 0~1）<strong>量纲完全不同</strong>——直接融合会炸掉排序。<br/><br/>
+
+                <strong>原因 2 — 中文分词完全失效（详见 Q8）：</strong><br/>
+                BM25 两端都用 <code>query.split()</code> / <code>chunk.split()</code> 按空格分词。中文没有空格：
+                <pre><code>"比亚迪2024年营收增长率".split() → ["比亚迪2024年营收增长率"]  # 一个"词"
+# BM25 索引里所有文档也都是 split() 切出来的，根本匹配不上</code></pre>
+                实际召回率为零。需要接 jieba 分词才能工作，但当前代码未实现。<br/><br/>
+
+                <strong>原因 3 — 两阶段策略已经足够：</strong><br/>
+                向量召回 28 个 → LLM 精排 6 个 的流水线在实践中已经产生高质量结果。BM25 在此架构中更多是<strong>独立对比基线</strong>和<strong>未来扩展点</strong>——如果需要真正的 Hybrid（双路召回+LLM精排），只需在 BM25 加 jieba 分词后，将两路结果合并再送入 reranker。
+              </div>
+            </details>
+
+
+            <!-- Q3 -->
+            <h3>
+              ⚡ Q3：<code>documents_batch_size=1</code> vs
+              <code>=2</code>，发生了什么不同的事？
+            </h3>
+            <p class="desc">
+              当 <code>batch_size=1</code> 时，每个文档单独调用一次 LLM；当
+              <code>batch_size=2</code> 时，两个文档打包进一次 LLM 调用。前者用
+              <code>ThreadPoolExecutor</code>
+              并行发多个请求，后者也并行但每个请求里评两个文档。哪种更快？哪种更准？为什么默认值是
+              2 而不是 4 或 8？
+            </p>
+            <p class="desc" style="font-size: 0.82em; color: var(--orange)">
+              💡 提示：想想 LLM 的 context window 和 attention
+              机制——同时看两个文档和同时看八个文档，LLM 的"比较能力"有区别吗？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>batch_size 控制 LLM 在一次 API 调用中评估几个文档。看 rerank_documents() 的分支逻辑：</strong><br/><br/>
+
+                <strong>分支 1 — batch_size=1：独立评估，ThreadPoolExecutor 并行</strong>
+                <pre><code>if documents_batch_size == 1:
+    def process_single_doc(doc):
+        ranking = self.get_rank_for_single_block(query, doc['text'])
+        # get_rank_for_single_block 内部：
+        #   user_prompt = f'Here is the query:\n"{query}"\n\n
+        #                   Here is the retrieved text block:\n"""{retrieved_document}"""\n'
+        #   → LLM 只看这一个文档，回答 relevance_score + reasoning
+        doc_with_score = doc.copy()
+        doc_with_score["relevance_score"] = ranking["relevance_score"]
+        doc_with_score["combined_score"] = round(
+            llm_weight * ranking["relevance_score"] + vector_weight * doc['distance'], 4)
+        return doc_with_score
+
+    # 28 个文档 → 28 次 API 调用，全部并行发出
+    with ThreadPoolExecutor() as executor:
+        all_results = list(executor.map(process_single_doc, documents))</code></pre>
+
+                <strong>分支 2 — batch_size=2（默认）：配对评估，批次内并行</strong>
+                <pre><code>else:  # batch_size > 1
+    # 28 个文档 → ceil(28/2) = 14 个 batch
+    doc_batches = [documents[i:i+2] for i in range(0, len(documents), 2)]
+
+    def process_batch(batch):
+        texts = [doc['text'] for doc in batch]
+        rankings = self.get_rank_for_multiple_blocks(query, texts)
+        # get_rank_for_multiple_blocks 内部：
+        #   formatted = "Block 1:\n\n"""\n{doc1}\n"""\n\n---\n\nBlock 2:\n\n"""\n{doc2}\n""""
+        #   user_prompt = f'Here is the query: "{query}"\n\n{formatted}\n\n
+        #                   You should provide exactly 2 rankings, in order.'
+        #   → LLM 同时看 Block 1 和 Block 2，分别打分
+        for doc, rank in zip(batch, block_rankings):
+            doc["combined_score"] = round(
+                llm_weight * rank["relevance_score"] + vector_weight * doc['distance'], 4)
+
+    with ThreadPoolExecutor() as executor:
+        batch_results = list(executor.map(process_batch, doc_batches))</code></pre>
+
+                <strong>batch_size=2 为什么是最优默认值？</strong><br/><br/>
+                ① <strong>减少网络往返</strong>：28 个候选 → 14 次 API 请求（vs batch_size=1 的28次），RTT 减半<br/>
+                ② <strong>LLM 能配对比较</strong>：当 LLM 同时看到 Block A 和 Block B，它能说"A 比 B 更相关"，而不仅仅各自打分。这是 LLM 擅长的任务<br/>
+                ③ <strong>避免注意力稀释</strong>：如果 batch_size=8，LLM 一次看8个文档，中间位置的文档容易被忽略（Lost-in-the-Middle 效应）。2 是最小比较单元，注意力最集中<br/>
+                ④ <strong>降级容错</strong>：代码有防御：
+                <pre><code>if len(block_rankings) &lt; len(batch):
+    # LLM 少返回了排名 → 用 0.0 补齐
+    for _ in range(len(batch) - len(block_rankings)):
+        block_rankings.append({"relevance_score": 0.0, ...})</code></pre>
+                不会因为 LLM 少输出一个排名而崩溃。
+              </div>
+            </details>
+
+
+            <!-- Q4 -->
+            <h3>📊 Q4：<code>llm_weight=0.7</code> 意味着什么？</h3>
+            <p class="desc">
+              最终得分 =
+              <code>0.7 × LLM相关性分 + 0.3 × 向量相似度</code>。为什么要给 LLM
+              70% 的权重？如果改成 <code>0.0</code>（纯向量）或
+              <code>1.0</code>（纯 LLM），检索结果会怎样变化？0.7
+              这个值是从哪里来的——是调参调出来的，还是有理论依据？
+            </p>
+            <p class="desc" style="font-size: 0.82em; color: var(--orange)">
+              💡 提示：回顾 <code>reranking.py</code> 中 LLM 用的是
+              <code>gpt-4o-mini</code>，向量用的是
+              <code>text-embedding-3-large</code>。两个模型的"判断力"真的差 7:3
+              吗？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>llm_weight 控制 LLM 精排话语权 vs 向量基础信号的权重分配。核心公式：</strong><br/><br/>
+
+                <pre><code>vector_weight = 1 - llm_weight  # 0.3
+combined_score = round(
+    llm_weight * relevance_score +      # 0.7 × GPT-4o-mini 判断
+    vector_weight * distance,            # 0.3 × FAISS 内积相似度
+    4
+)</code></pre>
+
+                <strong>三个极端值的效果分析：</strong><br/><br/>
+
+                <strong>llm_weight=0.0（纯向量排序）：</strong>
+                <pre><code>combined_score = 0.0 × relevance_score + 1.0 × distance  # 完全是向量距离
+# 查询"原油进口量" → 向量空间中 "原油"≈"石油"≈"天然气"≈"成品油"
+# embedding 对这四个词给出几乎相同的 cosine similarity
+# 结果：排序混乱，真正包含"原油进口量"数据的 chunk 可能排在第 5 位</code></pre>
+                向量擅长"语义近似"但不擅长"精确区分"——它无法判断"相似"是"信息相关"还是"语义重叠但无关"。<br/><br/>
+
+                <strong>llm_weight=1.0（纯 LLM 排序）：</strong>
+                <pre><code>combined_score = 1.0 × relevance_score + 0.0 × distance
+# 每个 query 需要 28 次 LLM 调用（未预筛选）
+# 成本：28 × GPT-4o-mini API × 每次 ~200 token output ≈ 5600 token
+# 延迟：虽然有 ThreadPoolExecutor 并行，但 28 个请求仍然比向量检索慢 100×</code></pre>
+                更重要的是：完全不用向量预筛选，LLM 需要评估海量不相关文档。向量先做粗筛去掉 99% 的不相关内容，LLM 只在 28 个候选上精排——分工明确。<br/><br/>
+
+                <strong>llm_weight=0.7（默认）：</strong><br/>
+                0.7 不是理论推导值，而是实践中的经验选择。逻辑是：<br/>
+                ① GPT-4o-mini 阅读文本的能力明显优于 text-embedding-3-large 的向量空间近似 → 给 LLM 更大话语权<br/>
+                ② 保留 0.3 向量分量作为"锚点"——防止 LLM 对某文档误判为极度相关（比如被一段写得特别好的文字"忽悠"了），向量分量提供了基础信号约束<br/>
+                ③ 单次 LLM 评估可能有随机性（即使 temperature=0），0.3 向量分提供了一定的平滑
+              </div>
+            </details>
+
+
+            <!-- Q5 -->
+            <h3>📊 Q5：为什么要召回 28 个再筛选到 6 个？</h3>
+            <p class="desc">
+              <code>llm_reranking_sample_size=28</code
+              >，<code>top_n=6</code>。也就是先从向量库召回 28 个候选，用 LLM
+              重排序后再取前 6 个。为什么不在向量检索时直接
+              <code>top_n=6</code>？省掉的那 22 个候选文档会造成什么损失？
+            </p>
+            <p class="desc" style="font-size: 0.82em; color: var(--orange)">
+              💡 提示：想想向量检索的"语义相近但无关"问题——一个 query
+              关于"营收增长"，向量库可能把"净利润增长"的 chunk 也排进前
+              6，因为它们在 embedding 空间里确实很近。LLM 能纠正这个错误吗？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>28→6 是经典的两阶段"召回-重排"（Recall-Rerank）策略。看 HybridRetriever 的完整流程：</strong><br/><br/>
+
+                <pre><code># 阶段 1：向量粗筛（高召回，容忍噪声）
+vector_results = self.vector_retriever.retrieve_by_company_name(
+    company_name=company_name, query=query,
+    top_n=28,  # ← 28 不是随意选的，是召回率与成本之间的权衡
+    return_parent_pages=False
+)
+# FAISS 返回 28 个结果，每个都带有 cosine similarity（0~1）
+
+# 阶段 2：LLM 精排（高精度，筛选无关）
+reranked_results = self.reranker.rerank_documents(
+    query=query, documents=vector_results,  # ← 只看这28个
+    documents_batch_size=2, llm_weight=0.7
+)
+return reranked_results[:6]  # ← 最终只取前6</code></pre>
+
+                <strong>为什么不能直接 top_n=6（省掉 22 个候选）？——具体例子说明：</strong><br/><br/>
+                查询：<code>"比亚迪 2024 年营收增长率是多少？"</code><br/><br/>
+                向量检索 top-6 的实际结果可能是：
+                <table style="font-size:0.82em;margin:8px 0">
+                <tr style="color:var(--accent)""><td>排名</td><td>chunk 内容</td><td>余弦相似度</td><td>实际相关？</td></tr>
+                <tr><td>1</td><td>"2024年营收达到6000亿元，同比增长12%"</td><td>0.91</td><td style="color:#3fb950">✅</td></tr>
+                <tr><td>2</td><td>"净利润同比增长15%至300亿元"</td><td>0.88</td><td style="color:#f85149">❌ 问的是营收不是利润</td></tr>
+                <tr><td>3</td><td>"2024年营收目标为6500亿元"</td><td>0.87</td><td style="color:#f85149">❌ 目标是目标，不是实际增长率</td></tr>
+                <tr><td>4</td><td>"2024年营收构成：汽车业务占80%"</td><td>0.86</td><td style="color:#f85149">❌ 说的是构成不是增长率</td></tr>
+                <tr><td>5</td><td>"2023年营收5000亿元"</td><td>0.85</td><td style="color:#f85149">❌ 2023年数据，不能直接算增长率</td></tr>
+                <tr><td>6</td><td>"主要客户营收贡献情况"</td><td>0.84</td><td style="color:#f85149">❌ 客户维度，不是总营收</td></tr>
+                </table>
+                只有第1个相关！如果直接 top_n=6，LLM 只有一个正确答案可用。但第 9 位可能是：
+                <pre><code>排名9: "营收从2023年的5000亿增长到2024年的6000亿，增长率达12%"
+余弦相似度: 0.81  → 因为用了"增长到"而非"增长率"，embedding 给低了分</code></pre>
+                这个 chunk 比排名2-6都更相关，但它排在第9位。top_n=28 确保了这些"语义不够近但信息高度相关"的文档能被 LLM 发现。
+
+                <strong>28 这个数字怎么来的？</strong>实践中的经验值：太小（如 10）→ 可能漏掉正确答案；太大（如 50）→ LLM 成本线性增长。28 ≈ 向量检索中 90%+ 召回率覆盖的最小 k 值。
+              </div>
+            </details>
+
+
+            <!-- Q6 -->
+            <h3>
+              📊 Q6：<code>return_parent_pages</code> — chunk
+              和整页的区别是什么？
+            </h3>
+            <p class="desc">
+              <code>return_parent_pages=False</code> 返回的是切分后的 300-token
+              chunk；<code>=True</code> 返回的是 chunk 所属的完整页面（可能几千
+              tokens）。下游什么时候需要
+              chunk，什么时候需要整页？如果用户问"比亚迪 2024 年利润表"，返回
+              chunk 够用吗？返回整页会不会给 LLM 太多噪音？
+            </p>
+            <p class="desc" style="font-size: 0.82em; color: var(--orange)">
+              💡 提示：看看 <code>HybridRetriever</code> 的默认值是
+              <code>return_parent_pages=False</code>——说明这个 pipeline
+              的"主流用法"是返回 chunk。谁在消费 chunk？谁需要整页？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>return_parent_pages 控制返回粒度：chunk（300 token 片段）vs 完整页面（几千 token）。看检索代码中的分支：</strong><br/><br/>
+
+                <pre><code>for distance, index in zip(distances[0], indices[0]):  # FAISS 返回的 top-N
+    distance = round(float(distance), 4)
+    chunk = chunks[index]                             # ← 切分后的小块
+    parent_page = next(                               # ← chunk 所属的完整页面
+        page for page in pages if page["page"] == chunk["page"]
+    )
+
+    if return_parent_pages:
+        if parent_page["page"] not in seen_pages:     # ← 去重！
+            seen_pages.add(parent_page["page"])
+            result = {
+                "distance": distance,                  # 保留了 chunk 的相似度
+                "page": parent_page["page"],           # 但返回整页的内容
+                "text": parent_page["text"]             # ← 整页文本（可能数千字符）
+            }
+    else:
+        result = {                                     # 默认：返回 chunk 自身
+            "distance": distance,
+            "page": chunk["page"],
+            "text": chunk["text"]                      # ← 仅 300 token
+        }</code></pre>
+
+                <strong>关键细节——去重（seen_pages）：</strong><br/>
+                一个页面可能被切成 5~10 个 chunk。如果其中 3 个 chunk 都匹配了 query，不拿去重就会返回同一页 3 次。去重确保每页最多返回一次。<br/><br/>
+
+                <strong>两种场景对应两种需求：</strong><br/><br/>
+
+                <strong>Chunk 模式（False）— 精确回答</strong><br/>
+                Query："比亚迪 2024 年研发投入多少钱？" → 答案就在一两句话里 → chunk 精准命中：
+                <pre><code>返回: {"text": "2024年度研发投入为150亿元，同比增长20%", "page": 42, "distance": 0.93}
+# 150 个 token，LLM 一眼看到答案</code></pre>
+
+                <strong>整页模式（True）— 完整理解</strong><br/>
+                Query："分析比亚迪 2024 年利润表的整体状况" → 需要利润表全部行 + 上下文 → 整页返回：
+                <pre><code>返回: {"text": "第42页完整文本（含利润表HTML + 3段文字说明）共2800字符", "page": 42}
+# 虽然 90% 可能与问题无关，但 LLM 需要完整利润表才能正确分析</code></pre>
+
+                <strong>噪音 vs 完整性 的权衡：</strong><br/>
+                整页模式可能返回 2000+ token，其中大量内容不相关。这违背了 RAG "只给 LLM 最相关信息"的核心原则。默认值 False 说明 pipeline 的主流用法是 chunk 检索——精确高效。整页模式是为需要完整上下文的分析型 query 准备的例外开关。
+              </div>
+            </details>
+
+
+            <!-- Q7 -->
+            <h3>
+              🔥 Q7：<code>retrieve_all()</code> 为什么给所有页面都标
+              <code>distance=0.5</code>？
+            </h3>
+            <p class="desc">
+              这个方法返回公司的所有页面，每页的 <code>distance</code> 硬编码为
+              <code>0.5</code
+              >。它的使用场景是什么？如果用户想"看完比亚迪的整份年报"，为什么不直接用
+              <code>retrieve_all()</code> 而要绕一圈？如果把它返回的结果直接喂给
+              <code>LLMReranker.rerank_documents()</code>，会发生什么？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>retrieve_all() 是一个"放弃检索，全量返回"的兜底策略。看代码：</strong><br/><br/>
+
+                <pre><code>def retrieve_all(self, company_name: str) -> List[Dict]:
+    # 第一步：找到目标公司（和正常检索一样）
+    for report in self.all_dbs:
+        if report["document"]["metainfo"]["company_name"] == company_name:
+            target_report = report
+            break
+
+    pages = target_report["document"]["content"]["pages"]
+
+    # 第二步：不做任何检索，返回所有页面
+    all_pages = []
+    for page in sorted(pages, key=lambda p: p["page"]):  # 按页码排序
+        result = {
+            "distance": 0.5,       # ← 硬编码！所有页面同权重
+            "page": page["page"],
+            "text": page["text"]
+        }
+        all_pages.append(result)
+    return all_pages</code></pre>
+
+                <strong>distance=0.5 的三个设计意图：</strong><br/><br/>
+                ① <strong>不是 0</strong>：如果 distance=0，下游可能触发距离阈值过滤（距离太小→不相关→丢弃）。0.5 保证不会被过滤<br/>
+                ② <strong>不是 1</strong>：如果 distance=1，下游可能误以为这是"完美语义匹配"，做出错误推断。0.5 明确表达"没有检索信号"<br/>
+                ③ <strong>中性的 0.5</strong>：在排序中不会"挤掉"真正检索到的结果（检索结果一般在 0.7~0.95），也不会被它们完全淹没<br/><br/>
+
+                <strong>如果喂给 LLMReranker——灾难性的连锁反应：</strong>
+                <pre><code># 假设年报有 200 页，全量给 reranker
+vector_results = retrieve_all("比亚迪")  # 返回 200 个 page
+reranked_results = reranker.rerank_documents(
+    query="研发投入多少？", documents=vector_results,  # 200 个文档！
+    documents_batch_size=2  # ceil(200/2) = 100 次 LLM 调用！
+)
+# 成本：100 × GPT-4o-mini ≈ 5000 token 输出 + 200页×平均500 token 输入 = 10万 token
+# 延迟：100 次 API 调用即使全并行也需 10-30 秒
+# 准确度：LLM 在 200 个候选间排序 → Lost-in-the-Middle 效应严重</code></pre>
+
+                <strong>正确的全量分析方式</strong>：先用 <code>retrieve_all()</code> 获取所有页面 → 按页号天然顺序排列 → 分批（每 10 页）输入 LLM 做摘要 → 汇总答案。这样 LLM 不需要在 200 个候选间竞争排序，只需要按序理解内容。
+              </div>
+            </details>
+
+
+            <!-- Q8 -->
+            <h3>⚡ Q8：BM25 的 <code>query.split()</code> 对中文管用吗？</h3>
+            <p class="desc">
+              Ingestion 和 Retrieval 两端都是简单的
+              <code>.split()</code
+              >（按空格切分）。中文没有空格分隔——查询"比亚迪2024年营业收入"会被切成什么？BM25
+              索引到底能不能工作？如果不能，应该怎么改？
+            </p>
+            <p class="desc" style="font-size: 0.82em; color: var(--orange)">
+              💡 提示：这和 Q2 有关——也许 BM25 之所以没被 HybridRetriever
+              使用，就是因为中文分词没做好？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>BM25 的中文分词完全失效——这是它没有被集成到 HybridRetriever 的根本原因。看两端的代码：</strong><br/><br/>
+
+                <strong>Ingestion 端（建索引时）：</strong>
+                <pre><code># ingestion.py — BM25Ingestor.create_bm25_index()
+def create_bm25_index(self, chunks: List[str]) -> BM25Okapi:
+    tokenized_chunks = [chunk.split() for chunk in chunks]  # ← .split()!
+    return BM25Okapi(tokenized_chunks)
+# 中文 chunk "比亚迪2024年实现营业收入6000亿元".split()
+# → ["比亚迪2024年实现营业收入6000亿元"]   ← 整个是一个"token"！</code></pre>
+
+                <strong>Retrieval 端（查询时）：</strong>
+                <pre><code># retrieval.py — BM25Retriever.retrieve_by_company_name()
+tokenized_query = query.split()   # ← 又 .split()！
+scores = bm25_index.get_scores(tokenized_query)
+# "比亚迪2024年营收".split()
+# → ["比亚迪2024年营收"]   ← 又是一个"token"</code></pre>
+
+                <strong>为什么永远匹配不上？</strong>BM25Okapi 的 <code>get_scores()</code> 做的是精确 token 匹配：query 的 token 必须出现在文档的 token 列表中才能得分。两端都是 <code>.split()</code>，中文被切成单个大字符串，索引中的 "比亚迪2024年实现营业收入6000亿元" 和 query 的 "比亚迪2024年营收" 是两个不同的字符串——<strong>零匹配，零分</strong>。<br/><br/>
+
+                <strong>正确做法——接入 jieba 分词：</strong>
+                <pre><code>import jieba
+
+# Ingestion 端
+tokenized_chunks = [list(jieba.cut(chunk)) for chunk in chunks]
+# "比亚迪2024年实现营业收入6000亿元"
+# → ["比亚迪", "2024年", "实现", "营业", "收入", "6000", "亿", "元"]
+
+# Retrieval 端
+tokenized_query = list(jieba.cut(query))
+# "比亚迪2024年营收"
+# → ["比亚迪", "2024年", "营收"]
+# "营收" 能匹配索引中的 "收入"？不，jieba 不会同义词扩展...
+# 需要额外加同义词词典：{"营收": ["收入", "营业收入"]}</code></pre>
+                即使加上 jieba，BM25 对于中文还有一个挑战：同义词。"营收" 和 "营业收入" 在 BM25 看来是完全不同的词（需要同义词扩展），而向量 embedding 天然能处理同义词。这也是向量检索在这个项目中成为主流方案的原因之一。<br/><br/>
+
+                <strong>这也回答了 Q2</strong>：BM25 没进 HybridRetriever 不全是设计问题，更是工程现实——中文 BM25 需要 jieba + 同义词词典才能生产可用，当前代码还没做到这一步。
+              </div>
+            </details>
+
+
+            <!-- Q9 -->
+            <h3>🎯 Q9：端到端走一遍完整检索链路</h3>
+            <p class="desc">
+              用户输入 query "比亚迪2024年研发投入增长了多少？"，调用
+              <code>HybridRetriever.retrieve_by_company_name()</code
+              >。请按时间顺序画出每一步发生了什么：① 如何在
+              <code>self.all_dbs</code> 中找到目标？② 如何生成 query
+              embedding？用了什么模型？③ FAISS 搜索返回了什么？（<code
+                >distances</code
+              >
+              和 <code>indices</code> 的含义）④ 28 个候选如何打包成 batch？⑤
+              LLMReranker 如何并行打分？⑥ 最终分数如何融合、排序、截断到 6 个？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>以 query "比亚迪2024年研发投入增长了多少？"为例，完整走一遍 HybridRetriever 的 6 步链路：</strong><br/><br/>
+
+                <strong>步骤 ① — 在 self.all_dbs 中定位目标公司</strong>
+                <pre><code># VectorRetriever.retrieve_by_company_name() 内部
+for report in self.all_dbs:  # self.all_dbs 是启动时 _load_dbs() 预加载的列表
+    metainfo = report["document"]["metainfo"]
+    if metainfo["company_name"] == "比亚迪股份有限公司":  # 精确匹配
+        target_report = report  # → {name: "abc123...sha1", vector_db: FAISS_index, document: {...}}
+        break
+
+document = target_report["document"]       # 完整的 JSON 报告
+vector_db = target_report["vector_db"]     # FAISS 索引对象（已在内存中）
+chunks = document["content"]["chunks"]     # [{text, page, ...}, ...]，共 N 个 chunk
+pages = document["content"]["pages"]       # [{page, text, content, ...}, ...]</code></pre>
+
+                <strong>步骤 ② — 生成 query embedding</strong>
+                <pre><code># 调用 OpenAI Embedding API
+embedding = self.llm.embeddings.create(
+    input="比亚迪2024年研发投入增长了多少？",
+    model="text-embedding-3-large"
+)
+embedding = embedding.data[0].embedding  # → 3072 维 float 列表
+embedding_array = np.array(embedding, dtype=np.float32).reshape(1, -1)  # (1, 3072)
+# 这一步涉及网络 IO，耗时 ~200ms</code></pre>
+
+                <strong>步骤 ③ — FAISS 向量检索</strong>
+                <pre><code>distances, indices = vector_db.search(x=embedding_array, k=28)
+# distances = [[0.93, 0.91, 0.88, 0.87, 0.85, 0.84, 0.83, 0.82, ...]]
+# indices   = [[42,  15,  98,  7,   55,  23,  67,  11,  ...]]
+# 含义：chunks[42] 与 query 的余弦相似度 = 0.93，是最相似的 chunk
+#       chunks[15] = 0.91，第二相似 ... 以此类推 28 个</code></pre>
+                IndexFlatIP 返回的是内积值。因为 OpenAI embedding 是 L2 归一化的（||v||=1），所以内积 = 余弦相似度，范围 [0, 1]，越大越相似。这一步纯 CPU 计算，耗时 ~10ms。<br/><br/>
+
+                <strong>步骤 ④ — 打包 28 个候选为 batch</strong>
+                <pre><code># rerank_documents() 内部
+doc_batches = [vector_results[i:i+2] for i in range(0, 28, 2)]
+# → [
+#     [{"text":"研发投入150亿...", "distance":0.93}, {"text":"核心技术突破...", "distance":0.91}],
+#     [{"text":"研发人员5000人...", "distance":0.88}, {"text":"专利数量增长...", "distance":0.87}],
+#     ... 共 14 个 batch
+#   ]</code></pre>
+
+                <strong>步骤 ⑤ — LLMReranker 并行打分（14 个批次）</strong>
+                <pre><code># 每个 batch 构造一个 user_prompt：
+# "Here is the query: "比亚迪2024年研发投入增长了多少？"
+#  Here are the retrieved text blocks:
+#  Block 1:
+#  """
+#  研发投入150亿元，同比增长20%...
+#  """
+#  ---
+#  Block 2:
+#  """
+#  核心技术突破，研发人员5000人...
+#  """
+#  You should provide exactly 2 rankings, in order."
+
+# → GPT-4o-mini 返回：
+# {"block_rankings": [
+#     {"relevance_score": 0.95, "reasoning": "直接回答了研发投入金额和增长率"},
+#     {"relevance_score": 0.30, "reasoning": "只提到研发人员，未提及投入金额"}
+# ]}</code></pre>
+                14 个 batch 通过 ThreadPoolExecutor 并行发送，总耗时取决于最慢的那个 batch（~1-2 秒）。<br/><br/>
+
+                <strong>步骤 ⑥ — 加权融合、排序、截断</strong>
+                <pre><code># 对每个文档：
+combined_score = round(0.7 * relevance_score + 0.3 * distance, 4)
+# 例：Block 1: 0.7×0.95 + 0.3×0.93 = 0.665 + 0.279 = 0.9440
+#     Block 2: 0.7×0.30 + 0.3×0.91 = 0.210 + 0.273 = 0.4830
+
+# 全排序
+all_results.sort(key=lambda x: x["combined_score"], reverse=True)
+return all_results[:6]  # 取前 6 个</code></pre>
+
+                <strong>总耗时估算（单次检索）：</strong>
+                <table style="font-size:0.82em;margin:8px 0">
+                <tr style="color:var(--accent)"><td>步骤</td><td>耗时</td><td>瓶颈</td></tr>
+                <tr><td>① 定位公司</td><td>~1ms</td><td>内存字典查找</td></tr>
+                <tr><td>② Embedding API</td><td>~200ms</td><td>网络 IO（OpenAI）</td></tr>
+                <tr><td>③ FAISS 搜索</td><td>~10ms</td><td>CPU 向量内积</td></tr>
+                <tr><td>④+⑤ LLM 精排</td><td>~1000-2000ms</td><td>14 次 GPT-4o-mini API 并行</td></tr>
+                <tr><td>⑥ 融合+排序</td><td>~1ms</td><td>纯计算</td></tr>
+                <tr style="color:var(--orange)"><td>总计</td><td>≈1.5-3 秒</td><td>主要瓶颈在 LLM API</td></tr>
+                </table>
+              </div>
+            </details>
+
+
+            <!-- Q10 -->
+            <h3>🔥 Q10：FAISS 用的是内积（Inner Product）还是余弦距离？</h3>
+            <p class="desc">
+              <code>ingestion.py</code> 第 85 行：<code
+                >index = faiss.IndexFlatIP(dimension) # Cosine distance</code
+              >。注释写的是"Cosine distance"，但实际用的是
+              <code>IndexFlatIP</code>（Inner
+              Product，内积）。内积和余弦距离是两个不同的度量——这个注释是对的还是错的？对于
+              OpenAI <code>text-embedding-3-large</code> 输出的
+              embedding（是归一化的吗？），内积和余弦相似度等价吗？更重要的是——<code
+                >combined_score = 0.7×LLM + 0.3×distance</code
+              >
+              中，直接把 inner product 分数（越大越好）和
+              relevance_score（越大越好）相加——这个融合在数学上合理吗？如果
+              FAISS 用的是 L2 距离（越小越好），这行代码会不会把排序完全搞反？
+            </p>
+            <p class="desc" style="font-size: 0.82em; color: var(--orange)">
+              💡 提示：<code>faiss.IndexFlatIP</code> 返回的
+              <code>distances</code> 是内积值（范围 [-∞, +∞]），而
+              <code>LLMReranker</code> 返回的
+              <code>relevance_score</code> 可能范围不同（看看
+              <code>prompts.py</code
+              >）。两个量纲不同的分数直接相加，是否应该先归一化？
+            </p>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>这是整个项目中最微妙的数学细节。先从 ingestion.py 的代码看起：</strong><br/><br/>
+
+                <pre><code># ingestion.py — VectorDBIngestor._create_vector_db()
+def _create_vector_db(self, embeddings: List[float]):
+    embeddings_array = np.array(embeddings, dtype=np.float32)
+    dimension = len(embeddings[0])          # text-embedding-3-large → 3072
+    index = faiss.IndexFlatIP(dimension)     # Inner Product（内积），不是 L2！
+    #        ↑↑↑↑↑↑↑↑↑↑↑↑
+    # 注释写的是 "# Cosine distance"，但实际用的是 IndexFlatIP
+    index.add(embeddings_array)
+    return index</code></pre>
+
+                <strong>注释"Cosine distance"是对的还是错的？——数学上是正确的！</strong><br/><br/>
+                关键：OpenAI text-embedding-3-large 输出的 embedding 是<strong>L2 归一化</strong>的（已验证，||v||₂ ≈ 1.0）。<br/><br/>
+
+                <strong>归一化向量的数学恒等式：</strong>
+                <pre><code>余弦相似度 cos(θ) = (v · q) / (||v|| · ||q||)
+当 ||v|| = ||q|| = 1（归一化）:
+    cos(θ) = v · q   ← 内积 = 余弦相似度！
+
+IndexFlatIP 计算的就是 v · q（内积）
+∴ 对归一化向量，IndexFlatIP 返回的值 = 余弦相似度 ∈ [-1, 1]</code></pre>
+                实际中，text-embedding-3-large 的向量集中在正象限，余弦相似度通常在 [0, 1]，所以注释 "Cosine distance" 在效果上完全等价。严格来说应该写 "Cosine similarity via Inner Product for normalized vectors"，但注释的本意是正确的。<br/><br/>
+
+                <strong>分数融合的合理性分析：</strong>
+                <pre><code>combined_score = 0.7 * relevance_score + 0.3 * distance
+# relevance_score: GPT-4o-mini 返回，通过 response_format 约束，范围 [0, 1]
+# distance: FAISS 内积值，归一化后范围 [0, 1]（实际通常 0.7~0.95）
+# → 两个量纲都在 [0, 1]，可以直接相加！</code></pre>
+
+                <strong>潜在风险——LLM relevance_score 的量纲不确定：</strong>
+                <pre><code># prompts.py 中 RerankingPrompt 对 relevance_score 的描述：
+# "介于 0（完全不相关）到 1（高度相关）之间的浮点数"
+# 但如果 LLM 实际返回的值集中在 0.3~0.8（而非均匀分布在 0~1），
+# 那么 0.7×LLM 分 + 0.3×FAISS 分的融合就会偏斜</code></pre>
+
+                <strong>如果用了 IndexFlatL2 会怎样？——排序完全反转！</strong>
+                <pre><code># L2 距离：越小越好（0=完全相同，∞=完全不同）
+# 假设检索返回：
+chunk_A: L2=0.15 (很相似), relevance=0.9 → combined = 0.7×0.9 + 0.3×0.15 = 0.675
+chunk_B: L2=0.85 (很不像), relevance=0.1 → combined = 0.7×0.1 + 0.3×0.85 = 0.325
+# 结果还是 A > B？看似正确...
+
+# 但在边缘情况下：
+chunk_C: L2=0.10 (最相似！), relevance=0.2 → combined = 0.7×0.2 + 0.3×0.10 = 0.170
+chunk_D: L2=0.90 (很不像),   relevance=0.9 → combined = 0.7×0.9 + 0.3×0.90 = 0.900
+# C 的 L2 距离最小（最相似）但总分 0.17，D 的 L2 最大（最不相似）但总分 0.90！
+# 排序完全反了！需要用 1/(1+L2) 或 exp(-L2) 做方向转换。</code></pre>
+                这就是为什么 <code>IndexFlatIP</code>（内积，越大越好）是正确选择——它和 relevance_score 的方向一致（都是越大越好），可以直接相加。如果用 L2，需要方向转换逻辑，当前代码未实现这个转换。
+              </div>
+            </details>
+
+          </div>
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 〇 架构 ═══════ -->
+          <div class="card" id="ch0">
+            <h2>
+              🗺️ 〇、架构概览 — 三种检索器的定位
+              <span class="badge badge-blue">OVERVIEW</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <p class="desc">
+              本模块是 RAG
+              管线的<strong>第4道工序</strong>——当用户提问时，从已建好的索引中<strong>检索最相关的文档片段</strong>。提供了<strong>三种检索策略</strong>，从简单到复杂层层递进：
+            </p>
+
+            <div class="pipe-diagram">
+              <div class="pipe-node in">
+                关键词匹配<br /><small>BM25Retriever</small>
+              </div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node core">
+                语义相似度<br /><small>VectorRetriever</small>
+              </div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node out">
+                LLM 智能理解<br /><small>HybridRetriever</small>
+              </div>
+            </div>
+            <p
+              style="
+                text-align: center;
+                font-size: 0.82em;
+                color: var(--text-secondary);
+                margin-top: 4px;
+              "
+            >
+              从"字面匹配" → "语义理解" → "AI 判断相关度"
+            </p>
+
+            <table class="data-table">
+              <tr>
+                <th>类</th>
+                <th>检索方式</th>
+                <th>依赖</th>
+                <th>适用场景</th>
+              </tr>
+              <tr>
+                <td>
+                  <a href="#ch1"><code>BM25Retriever</code></a>
+                </td>
+                <td>关键词频率统计（稀疏检索）</td>
+                <td>BM25 索引文件 (<code>.pkl</code>)</td>
+                <td>精确关键词匹配、术语搜索</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="#ch2"><code>VectorRetriever</code></a>
+                </td>
+                <td>向量余弦相似度（稠密检索）</td>
+                <td>FAISS 索引 + OpenAI Embedding</td>
+                <td>语义搜索、同义词/近义词理解</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="#ch3"><code>HybridRetriever</code></a>
+                </td>
+                <td>向量检索 + LLM 重排序</td>
+                <td>VectorRetriever + LLMReranker</td>
+                <td>高精度问答、复杂语义理解</td>
+              </tr>
+            </table>
+
+            <div class="highlight tip">
+              <strong>👶 新手阅读建议：</strong>先看 ②
+              VectorRetriever（理解向量检索的基本逻辑）→ 再看 ③
+              HybridRetriever（理解为什么需要 LLM 重排序）→ 最后看 ①
+              BM25Retriever（传统方法的参考实现）。
+            </div>
+          </div>
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ① BM25Retriever ═══════ -->
+          <div class="card" id="ch1">
+            <h2>
+              ① <code>BM25Retriever</code> — 关键词检索
+              <span class="badge badge-green">SPARSE</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个类是做什么的？（大白话）</h3>
+            <p class="desc">
+              <strong>"找包含这些词的文档"</strong>——BM25
+              是最经典的关键词检索算法。它统计 query
+              中的词在每篇文档中出现了多少次，
+              给一个分数。词出现越多、越稀有，分数越高。简单粗暴，但无法理解"营收"和"收入"是近义词。
+            </p>
+
+            <h3>📋 唯一方法：<code>retrieve_by_company_name()</code></h3>
+            <p class="desc">
+              参数：<strong>company_name</strong>（公司名）、<strong>query</strong>（问题）、<strong>top_n</strong>（返回条数）、<strong>return_parent_pages</strong>（返回整页而非
+              chunk）
+            </p>
+
+            <div class="flow-step">
+              <div class="flow-num">1</div>
+              <div class="flow-content">
+                遍历 <code>documents_dir</code> 下所有 JSON，找到
+                <code>company_name</code> 匹配的报告
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">2</div>
+              <div class="flow-content">
+                从 <code>bm25_db_dir</code> 加载对应的 <code>.pkl</code> BM25
+                索引文件
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">3</div>
+              <div class="flow-content">
+                对 query 分词（<code>query.split()</code>），调用
+                <code>bm25_index.get_scores()</code> 获取每个 chunk 的 BM25 分数
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">4</div>
+              <div class="flow-content">
+                按分数降序排列，取前 <code>top_n</code> 个，返回 {distance,
+                page, text}
+              </div>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 BM25 检索核心代码</span>
+              </div>
+              <pre>
+scores = bm25_index.get_scores(tokenized_query)       # 每个chunk的BM25分数
+top_indices = sorted(range(len(scores)),
+    key=lambda i: scores[i], reverse=True)[:top_n]    # 取Top-N
+
+for index in top_indices:
+    chunk = chunks[index]
+    result = {"distance": score, "page": chunk["page"], "text": chunk["text"]}</pre
+              >
+            </div>
+
+            <div class="highlight warn">
+              <strong
+                >⚠️ 当前代码中 BM25Retriever 未被 HybridRetriever 使用。</strong
+              >
+              从代码看，<code>HybridRetriever</code> 只组合了
+              <code>VectorRetriever</code> + <code>LLMReranker</code>，BM25
+              作为一个独立备选方案存在。
+            </div>
+          </div>
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ② VectorRetriever ═══════ -->
+          <div class="card" id="ch2">
+            <h2>
+              ② <code>VectorRetriever</code> — 向量语义检索
+              <span class="badge badge-orange">CORE</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个类是做什么的？（大白话）</h3>
+            <p class="desc">
+              <strong>"找语义最相似的文档"</strong>——它把 query 变成一个向量（用
+              OpenAI embedding），然后在 FAISS
+              索引里找<strong>余弦距离最近</strong>的几个 chunk。
+              它能理解"营收"≈"收入"≈"营业收入"，因为它们的向量在空间中很接近。
+            </p>
+
+            <h3>📐 构造函数做了什么？</h3>
+            <div class="explain-box">
+              <div class="explain-title">初始化三步走</div>
+              <ol>
+                <li>
+                  <code>_load_dbs()</code>：批量加载所有 FAISS 索引文件 +
+                  对应文档 JSON
+                </li>
+                <li>
+                  <code>_set_up_llm()</code>：创建 OpenAI 客户端，用于后续生成
+                  embedding
+                </li>
+                <li>
+                  把每个报告的 <code>{name, vector_db, document}</code> 存入
+                  <code>self.all_dbs</code>
+                </li>
+              </ol>
+            </div>
+
+            <!-- ─ 2a ─ -->
+            <h3 id="ch2a">📦 <code>_load_dbs()</code> — 加载所有向量索引</h3>
+            <p class="desc">
+              扫描 <code>documents_dir</code> 和
+              <code>vector_db_dir</code> 两个目录， 按文件名匹配：<code
+                >报告A.json</code
+              >
+              ↔ <code>报告A.faiss</code>。加载成功的数据结构：
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">📊 self.all_dbs 数据结构</span>
+              </div>
+              <pre>
+[
+  {
+    "name": "abc123...sha1",
+    "vector_db": &lt;faiss.Index&gt;,           # FAISS向量索引对象
+    "document": {
+      "metainfo": { "company_name":"XX公司", ... },
+      "content": { "chunks": [...], "pages": [...] }
+    }
+  },
+  ...
+]</pre
+              >
+            </div>
+
+            <!-- ─ 2b ─ -->
+            <h3 id="ch2b">
+              🔍 <code>retrieve_by_company_name()</code> — 核心检索方法
+            </h3>
+            <div class="flow-step">
+              <div class="flow-num green">①</div>
+              <div class="flow-content">
+                <strong>定位目标报告</strong>——在 <code>self.all_dbs</code> 中按
+                <code>company_name</code> 匹配
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num green">②</div>
+              <div class="flow-content">
+                <strong>生成 query embedding</strong>——调用 OpenAI
+                <code>text-embedding-3-large</code> 模型
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num green">③</div>
+              <div class="flow-content">
+                <strong>FAISS 向量检索</strong>——<code
+                  >vector_db.search(embedding_array, k=top_n)</code
+                >，返回距离和索引
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num green">④</div>
+              <div class="flow-content">
+                <strong>组装结果</strong>——根据
+                <code>return_parent_pages</code> 决定返回 chunk 还是整页
+              </div>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">🐍 向量检索核心代码</span>
+              </div>
+              <pre>
+# 将query转为向量
+embedding = self.llm.embeddings.create(
+    input=query, model="text-embedding-3-large"
+).data[0].embedding
+
+# FAISS搜索Top-K最相似的向量
+embedding_array = np.array(embedding, dtype=np.float32).reshape(1, -1)
+distances, indices = vector_db.search(x=embedding_array, k=top_n)</pre
+              >
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">
+                📖 text-embedding-3-large 是什么？
+              </div>
+              <ul>
+                <li>
+                  OpenAI 最强的 embedding 模型，输出
+                  <strong>3072 维</strong>向量
+                </li>
+                <li>支持多语言（中英文都行），最大输入 8191 token</li>
+                <li>
+                  算出的"距离"越小 =
+                  语义越相似（这里是<strong>余弦距离</strong>，用 FAISS 的
+                  <code>METRIC_INNER_PRODUCT</code> 近似）
+                </li>
+              </ul>
+            </div>
+
+            <!-- ─ 2c ─ -->
+            <h3 id="ch2c">
+              📄 <code>retrieve_all()</code> — 全量返回（兜底策略）
+            </h3>
+            <p class="desc">
+              不进行任何检索，直接返回<strong>目标公司的所有页面</strong>，每页标记
+              distance=0.5。这是一个<strong>兜底策略</strong>——
+              当检索结果都不好的时候，把全部内容给 LLM 看，让它自己找答案。
+            </p>
+
+            <!-- ─ 2d ─ -->
+            <h3 id="ch2d">
+              📏 <code>get_strings_cosine_similarity()</code> — 静态工具方法
+            </h3>
+            <p class="desc">
+              计算<strong>两段文本的余弦相似度</strong>。每次调用都会重新创建
+              OpenAI 客户端和生成 embedding，适合<strong>独立调用</strong>
+              而非批量场景。返回 0~1 的值，越接近 1 越相似。
+            </p>
+
+            <div class="highlight tip">
+              <strong>💡 return_parent_pages 的妙用：</strong>检索默认返回
+              chunk（~300 token 的小块），但有时候用户需要看整页上下文。
+              开启此选项后，即使只匹配到某个 chunk，也会返回<strong
+                >该 chunk 所在的整页内容</strong
+              >，提供更完整的上下文给下游 LLM。
+            </div>
+          </div>
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ③ HybridRetriever ═══════ -->
+          <div class="card" id="ch3">
+            <h2>
+              ③ <code>HybridRetriever</code> — 混合检索 + LLM 重排序
+              <span class="badge badge-red">ADVANCED</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <h3>🤔 这个类是做什么的？（大白话）</h3>
+            <p class="desc">
+              <strong>这是项目中真正用于问答的检索器</strong>。它分两步：①
+              先用向量检索拉回一堆候选（比如28个）， ② 再用 GPT-4o-mini
+              对这28个候选项逐一打分，"这个 chunk 和问题相关吗？有多相关？"
+              最后按<strong>加权组合分数</strong>（向量相似度 × 0.3 + LLM 评分 ×
+              0.7）排序，只保留前6个。
+            </p>
+
+            <h3>🔧 参数说明</h3>
+            <table class="data-table">
+              <tr>
+                <th>参数</th>
+                <th>默认值</th>
+                <th>含义</th>
+              </tr>
+              <tr>
+                <td><code>llm_reranking_sample_size</code></td>
+                <td>28</td>
+                <td>第一轮向量检索拉回多少个候选</td>
+              </tr>
+              <tr>
+                <td><code>documents_batch_size</code></td>
+                <td>2</td>
+                <td>每批让 LLM 一次比较几个文档（1=逐个打分，>1=批量比较）</td>
+              </tr>
+              <tr>
+                <td><code>top_n</code></td>
+                <td>6</td>
+                <td>最终返回多少个结果</td>
+              </tr>
+              <tr>
+                <td><code>llm_weight</code></td>
+                <td>0.7</td>
+                <td>LLM 评分的权重（vector权重自动=1-llm_weight=0.3）</td>
+              </tr>
+            </table>
+
+            <h3>📊 完整检索流程图</h3>
+            <div class="pipe-diagram">
+              <div class="pipe-node in">用户Query</div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node in">
+                VectorRetriever<br /><small>召回 28 个候选</small>
+              </div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node core">
+                LLM Reranker<br /><small>GPT-4o-mini 打分</small>
+              </div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node core">
+                加权融合<br /><small>0.3×向量 + 0.7×LLM</small>
+              </div>
+              <span class="pipe-arrow">→</span>
+              <div class="pipe-node out">
+                Top-6<br /><small>最终结果</small>
+              </div>
+            </div>
+
+            <h3>🤖 LLM Reranking 的两种模式</h3>
+            <div class="explain-box">
+              <div class="explain-title">① 单文档模式（batch_size=1）</div>
+              <ul>
+                <li>
+                  每个文档独立发送给 LLM："这个文档和问题相关吗？打几分？"
+                </li>
+                <li>
+                  返回 <code>relevance_score</code>（0~1）+
+                  <code>reasoning</code>（判断理由）
+                </li>
+                <li><strong>优点：</strong>精确，每个文档得到独立评估</li>
+                <li>
+                  <strong>缺点：</strong>慢（28个文档 = 28次 API
+                  调用），但用了<strong>多线程并行</strong>加速
+                </li>
+              </ul>
+            </div>
+            <div class="explain-box">
+              <div class="explain-title">
+                ② 批量模式（batch_size>1，默认为2）
+              </div>
+              <ul>
+                <li>
+                  每批2个文档一起发给 LLM："比较这2个文档，分别打分并排序"
+                </li>
+                <li>
+                  返回 <code>block_rankings</code> 数组，每个包含
+                  relevance_score + reasoning
+                </li>
+                <li>
+                  <strong>优点：</strong>快（14批 vs 28次调用），LLM 能横向比较
+                </li>
+                <li>
+                  <strong>缺点：</strong>batch
+                  之间的文档没有互相比较（这是两阶段检索的通用取舍）
+                </li>
+              </ul>
+            </div>
+
+            <h3>🔢 加权融合公式</h3>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang">📐 组合分数计算</span>
+              </div>
+              <pre>
+combined_score = llm_weight × relevance_score + (1-llm_weight) × distance
+
+# 默认：combined_score = 0.7 × LLM评分 + 0.3 × 向量相似度
+# 最终按 combined_score 降序排列，取前 top_n 个</pre
+              >
+            </div>
+
+            <div class="explain-box">
+              <div class="explain-title">
+                📖 注意：distance 和 similarity 的关系
+              </div>
+              <p style="font-size: 0.9em">
+                向量检索返回的
+                <code>distance</code>
+                是<strong>余弦距离</strong>（越小越相似），但 LLM 返回的
+                <code>relevance_score</code>
+                是<strong>相关度</strong>（越大越相关）。两者方向相反！ 在计算
+                <code>combined_score</code>
+                时直接将它们加权相加，这意味着代码假设 FAISS
+                的距离值已经被处理为"越大越好"的方向 （例如通过
+                <code>1-distance</code> 转换，或者 FAISS
+                索引使用了内积而非距离）。
+              </p>
+            </div>
+
+            <div class="highlight warn">
+              <strong>⚠️ 潜在问题：</strong>如果 FAISS 返回的是 L2
+              距离（越小越好），而 LLM relevance_score 是越大越好， 那么
+              <code>combined_score = 0.7 × rel + 0.3 × dist</code> 中 dist
+              越小反而让总分变小， 这会导致排序结果混乱。建议确认 FAISS
+              索引的实际度量方式（内积/余弦/L2）。
+            </div>
+          </div>
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ ④ 对比 ═══════ -->
+          <div class="card" id="ch4">
+            <h2>
+              📊 ④ 三种检索器对比总结
+              <span class="badge badge-cyan">SUMMARY</span>
+            </h2>
+            <div class="accent-bar"></div>
+
+            <table class="data-table">
+              <tr>
+                <th>维度</th>
+                <th>BM25Retriever</th>
+                <th>VectorRetriever</th>
+                <th>HybridRetriever</th>
+              </tr>
+              <tr>
+                <td>检索原理</td>
+                <td>词频统计</td>
+                <td>向量余弦相似度</td>
+                <td>向量 + LLM判断</td>
+              </tr>
+              <tr>
+                <td>索引文件</td>
+                <td><code>.pkl</code>（BM25权重）</td>
+                <td><code>.faiss</code>（向量）</td>
+                <td><code>.faiss</code> + OpenAI API</td>
+              </tr>
+              <tr>
+                <td>理解能力</td>
+                <td>字面匹配</td>
+                <td>语义理解</td>
+                <td>深度语义理解</td>
+              </tr>
+              <tr>
+                <td>速度</td>
+                <td>⚡ 极快</td>
+                <td>🚀 快</td>
+                <td>🐢 慢（需API调用）</td>
+              </tr>
+              <tr>
+                <td>成本</td>
+                <td>💰 免费</td>
+                <td>💵 Embedding API</td>
+                <td>💵💵 Embedding + Chat API</td>
+              </tr>
+              <tr>
+                <td>"营收"≈"收入"</td>
+                <td>❌ 不能</td>
+                <td>✅ 能</td>
+                <td>✅ 能</td>
+              </tr>
+              <tr>
+                <td>在项目中的角色</td>
+                <td>备选方案</td>
+                <td>Hybrid 的基础</td>
+                <td>主力检索器</td>
+              </tr>
+            </table>
+
+            <h3>📋 文件结构总结</h3>
+            <div class="code-block">
+              <div class="code-header">
+                <span class="lang"
+                  >🏗️ 类和方法总览（287行 → 3类 × 5个公开方法）</span
+                >
+              </div>
+              <pre>
+retrieval.py
+│
+├── class BM25Retriever                          # 关键词检索（备选）
+│   └── retrieve_by_company_name()               # 按公司名+关键词检索
+│
+├── class VectorRetriever                        # 向量检索（核心基础）
+│   ├── _load_dbs()                              # 加载所有FAISS索引
+│   ├── _set_up_llm() / set_up_llm()             # 创建OpenAI客户端
+│   ├── retrieve_by_company_name()               # 向量语义检索
+│   ├── retrieve_all()                           # 全量返回（兜底）
+│   └── get_strings_cosine_similarity()          # 静态工具：文本相似度
+│
+└── class HybridRetriever                        # 混合检索（主力）
+    └── retrieve_by_company_name()               # 向量检索 → LLM重排 → Top-N
+
+外部依赖：
+    src/reranking.py → LLMReranker              # GPT-4o-mini 打分
+    src/prompts.py   → RerankingPrompt           # 打分用的system prompt</pre
+              >
+            </div>
+
+            <div class="highlight tip">
+              <strong>👶 新手总结：</strong>retrieval.py
+              本质上只做一件事——<strong>"给定一个问题和公司名，从该公司年报中找到最相关的几个文本片段"</strong>。
+              BM25 靠"数词频"，VectorRetriever 靠"向量算距离"，HybridRetriever
+              在此基础上加了一层 AI 重排序， 让 GPT-4o-mini
+              亲自判断每个片段是否真的回答了问题。这三层递进关系体现了 RAG
+              检索系统的典型设计模式：
+              <strong>粗筛（向量）→ 精排（LLM）</strong>。
+            </div>
+          </div>
+
+          <footer>
+            retrieval.py · BM25 + FAISS + OpenAI Embedding + LLM Reranking ·
+            RAG-Challenge-2 讲解页面
+          </footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

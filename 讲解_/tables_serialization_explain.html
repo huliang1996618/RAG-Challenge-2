@@ -120,7 +120,8 @@
         flex-shrink: 0;
       }
       @keyframes prioPulse {
-        0%, 100% {
+        0%,
+        100% {
           opacity: 1;
           transform: scale(1);
         }
@@ -162,8 +163,13 @@
         animation: heroFloat 3s ease-in-out infinite;
       }
       @keyframes heroFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
       }
       .hero h1 {
         font-size: 2.8em;
@@ -248,12 +254,30 @@
         letter-spacing: 0.8px;
         vertical-align: middle;
       }
-      .badge-blue { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
-      .badge-green { background: rgba(63, 185, 80, 0.15); color: var(--green); }
-      .badge-orange { background: rgba(210, 153, 29, 0.15); color: var(--orange); }
-      .badge-purple { background: rgba(163, 113, 247, 0.15); color: var(--purple); }
-      .badge-red { background: rgba(248, 81, 73, 0.15); color: var(--red); }
-      .badge-cyan { background: rgba(57, 210, 192, 0.15); color: var(--cyan); }
+      .badge-blue {
+        background: rgba(88, 166, 255, 0.15);
+        color: var(--accent);
+      }
+      .badge-green {
+        background: rgba(63, 185, 80, 0.15);
+        color: var(--green);
+      }
+      .badge-orange {
+        background: rgba(210, 153, 29, 0.15);
+        color: var(--orange);
+      }
+      .badge-purple {
+        background: rgba(163, 113, 247, 0.15);
+        color: var(--purple);
+      }
+      .badge-red {
+        background: rgba(248, 81, 73, 0.15);
+        color: var(--red);
+      }
+      .badge-cyan {
+        background: rgba(57, 210, 192, 0.15);
+        color: var(--cyan);
+      }
 
       /* ── 装饰条 ── */
       .accent-bar {
@@ -295,14 +319,30 @@
         line-height: 1.65;
         color: var(--text);
       }
-      .code-block pre .c1 { color: #6e7681; }
-      .code-block pre .k { color: var(--red); }
-      .code-block pre .nf { color: var(--purple); }
-      .code-block pre .s { color: var(--green); }
-      .code-block pre .n { color: var(--cyan); }
-      .code-block pre .kn { color: var(--red); }
-      .code-block pre .o { color: var(--accent); }
-      .code-block pre .bp { color: var(--orange); }
+      .code-block pre .c1 {
+        color: #6e7681;
+      }
+      .code-block pre .k {
+        color: var(--red);
+      }
+      .code-block pre .nf {
+        color: var(--purple);
+      }
+      .code-block pre .s {
+        color: var(--green);
+      }
+      .code-block pre .n {
+        color: var(--cyan);
+      }
+      .code-block pre .kn {
+        color: var(--red);
+      }
+      .code-block pre .o {
+        color: var(--accent);
+      }
+      .code-block pre .bp {
+        color: var(--orange);
+      }
 
       /* ═══════════════════ 图解说明 / 高亮 ═══════════════════ */
       .explain-box {
@@ -319,9 +359,16 @@
         margin-bottom: 10px;
         font-size: 0.95em;
       }
-      .explain-box ul { padding-left: 18px; }
-      .explain-box li { margin-bottom: 6px; line-height: 1.7; }
-      .explain-box strong { color: var(--text); }
+      .explain-box ul {
+        padding-left: 18px;
+      }
+      .explain-box li {
+        margin-bottom: 6px;
+        line-height: 1.7;
+      }
+      .explain-box strong {
+        color: var(--text);
+      }
       .explain-box code {
         background: rgba(255, 255, 255, 0.06);
         padding: 1px 6px;
@@ -345,7 +392,9 @@
         border-color: rgba(63, 185, 80, 0.4);
         background: rgba(63, 185, 80, 0.05);
       }
-      .highlight strong { color: var(--text); }
+      .highlight strong {
+        color: var(--text);
+      }
       .highlight code {
         background: rgba(255, 255, 255, 0.06);
         padding: 1px 5px;
@@ -448,7 +497,9 @@
         margin: 16px 0;
       }
       @media (max-width: 700px) {
-        .two-col { grid-template-columns: 1fr; }
+        .two-col {
+          grid-template-columns: 1fr;
+        }
       }
       .func-card {
         background: var(--card-bg);
@@ -457,20 +508,40 @@
         border: 1px solid var(--border);
         border-left: 4px solid var(--accent);
       }
-      .func-card h4 { font-size: 1em; margin-bottom: 6px; color: var(--accent); }
-      .func-card p { font-size: 0.88em; color: var(--text-secondary); line-height: 1.6; }
+      .func-card h4 {
+        font-size: 1em;
+        margin-bottom: 6px;
+        color: var(--accent);
+      }
+      .func-card p {
+        font-size: 0.88em;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
       .func-card code {
         background: rgba(255, 255, 255, 0.06);
         padding: 1px 5px;
         border-radius: 3px;
         font-size: 0.9em;
       }
-      .func-card.orange { border-left-color: var(--orange); }
-      .func-card.orange h4 { color: var(--orange); }
-      .func-card.green { border-left-color: var(--green); }
-      .func-card.green h4 { color: var(--green); }
-      .func-card.purple { border-left-color: var(--purple); }
-      .func-card.purple h4 { color: var(--purple); }
+      .func-card.orange {
+        border-left-color: var(--orange);
+      }
+      .func-card.orange h4 {
+        color: var(--orange);
+      }
+      .func-card.green {
+        border-left-color: var(--green);
+      }
+      .func-card.green h4 {
+        color: var(--green);
+      }
+      .func-card.purple {
+        border-left-color: var(--purple);
+      }
+      .func-card.purple h4 {
+        color: var(--purple);
+      }
 
       /* ═══════════════════ 表格 ═══════════════════ */
       .data-table {
@@ -492,7 +563,9 @@
         border-bottom: 1px solid var(--border);
         color: var(--text-secondary);
       }
-      .data-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+      .data-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
       .data-table code {
         background: rgba(255, 255, 255, 0.06);
         padding: 1px 6px;
@@ -521,13 +594,30 @@
         color: #fff;
         background: var(--accent);
       }
-      .step-badge.s2 { background: var(--purple); }
-      .step-badge.s3 { background: var(--green); }
-      .step-badge.s4 { background: var(--orange); }
-      .step-badge.s5 { background: var(--cyan); }
-      .step-content { flex: 1; }
-      .step-content strong { display: block; margin-bottom: 2px; }
-      .step-content p { font-size: 0.88em; color: var(--text-secondary); margin: 0; }
+      .step-badge.s2 {
+        background: var(--purple);
+      }
+      .step-badge.s3 {
+        background: var(--green);
+      }
+      .step-badge.s4 {
+        background: var(--orange);
+      }
+      .step-badge.s5 {
+        background: var(--cyan);
+      }
+      .step-content {
+        flex: 1;
+      }
+      .step-content strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+      .step-content p {
+        font-size: 0.88em;
+        color: var(--text-secondary);
+        margin: 0;
+      }
 
       /* ═══════════════════ Footer ═══════════════════ */
       footer {
@@ -552,7 +642,12 @@
         content: "";
         flex: 1;
         height: 1px;
-        background: linear-gradient(90deg, transparent, var(--border), transparent);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border),
+          transparent
+        );
       }
       .slide-divider .divider-dot {
         width: 6px;
@@ -560,6 +655,140 @@
         background: var(--accent);
         border-radius: 50%;
         box-shadow: 0 0 8px var(--accent);
+      }
+
+      /* ── 思考题样式 ── */
+      .q-item {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        margin: 14px 0;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        transition: border-color 0.2s;
+      }
+      .q-item:hover {
+        border-color: var(--accent);
+      }
+      .q-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.85em;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .q-num.fire {
+        background: #f85149;
+      }
+      .q-num.bolt {
+        background: #d2991d;
+      }
+      .q-num.data {
+        background: #3fb950;
+      }
+      .q-num.global {
+        background: #a371f7;
+      }
+      .q-body {
+        flex: 1;
+      }
+      .q-body p {
+        margin: 0;
+        font-size: 0.9em;
+        line-height: 1.6;
+      }
+      .q-body p strong {
+        color: var(--text);
+      }
+      .q-hint {
+        margin-top: 6px;
+        font-size: 0.78em;
+        color: var(--text-secondary);
+        font-style: italic;
+      }
+      .q-hint code {
+        font-size: 0.92em;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 6px;
+        border-radius: 3px;
+      }
+      .q-section-title {
+        font-size: 0.95em;
+        font-weight: 700;
+        color: var(--text);
+        margin: 22px 0 10px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .q-section-title .icon {
+        font-size: 1.1em;
+      }
+
+      /* ── 答案展开/折叠 ── */
+      details.answer {
+        margin: 8px 0 12px 48px;
+      }
+      details.answer summary {
+        cursor: pointer;
+        user-select: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 0.8em;
+        font-weight: 600;
+        color: var(--accent);
+        background: rgba(88, 166, 255, 0.08);
+        border: 1px solid rgba(88, 166, 255, 0.2);
+        transition: all 0.2s;
+      }
+      details.answer summary:hover {
+        background: rgba(88, 166, 255, 0.15);
+      }
+      details.answer[open] summary {
+        border-radius: 6px 6px 0 0;
+        margin-bottom: 0;
+      }
+      details.answer .answer-body {
+        padding: 12px 14px;
+        margin: 0;
+        background: rgba(88, 166, 255, 0.03);
+        border: 1px solid rgba(88, 166, 255, 0.12);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        font-size: 0.82em;
+        line-height: 1.75;
+        color: var(--text-secondary);
+      }
+      details.answer .answer-body strong {
+        color: var(--text);
+      }
+      details.answer .answer-body code {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 0.92em;
+      }
+      details.answer .answer-body ul,
+      details.answer .answer-body ol {
+        padding-left: 20px;
+        margin: 6px 0;
+      }
+      details.answer .answer-body li {
+        margin: 4px 0;
       }
     </style>
   </head>
@@ -573,17 +802,69 @@
           <span>⭐ = 重要</span>
         </div>
         <div class="toc-list">
-          <a href="#ch0"><span class="toc-num">〇</span>架构索引<span class="prio-fire">🔥</span></a>
-          <a href="#f1"><span class="toc-num">①</span>模块级工具<span class="prio-star">⭐</span></a>
-          <a href="#f2"><span class="toc-num">②</span>TableSerializer.__init__<span class="prio-star">⭐</span></a>
-          <a href="#f3"><span class="toc-num">③</span>_get_table_context<span class="prio-fire">🔥</span></a>
-          <a href="#f4"><span class="toc-num">④</span>_send_serialization_request<span class="prio-fire">🔥</span></a>
-          <a href="#f5"><span class="toc-num">⑤</span>_serialize_table<span class="prio-fire">🔥</span></a>
+          <a href="#questions"
+            ><span class="toc-num">🤔</span>带着问题看<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#ch0"
+            ><span class="toc-num">〇</span>架构索引<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f1"
+            ><span class="toc-num">①</span>模块级工具<span class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f2"
+            ><span class="toc-num">②</span>TableSerializer.__init__<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f3"
+            ><span class="toc-num">③</span>_get_table_context<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f4"
+            ><span class="toc-num">④</span>_send_serialization_request<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
+          <a href="#f5"
+            ><span class="toc-num">⑤</span>_serialize_table<span
+              class="prio-fire"
+              >🔥</span
+            ></a
+          >
           <a href="#f6"><span class="toc-num">⑥</span>serialize_tables</a>
-          <a href="#f7"><span class="toc-num">⑦</span>async_serialize_tables<span class="prio-star">⭐</span></a>
-          <a href="#f8"><span class="toc-num">⑧</span>process_file<span class="prio-star">⭐</span></a>
-          <a href="#f9"><span class="toc-num">⑨</span>process_directory_parallel<span class="prio-star">⭐</span></a>
-          <a href="#f10"><span class="toc-num">⑩</span>TableSerialization（Prompt+Model）<span class="prio-fire">🔥</span></a>
+          <a href="#f7"
+            ><span class="toc-num">⑦</span>async_serialize_tables<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f8"
+            ><span class="toc-num">⑧</span>process_file<span class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f9"
+            ><span class="toc-num">⑨</span>process_directory_parallel<span
+              class="prio-star"
+              >⭐</span
+            ></a
+          >
+          <a href="#f10"
+            ><span class="toc-num">⑩</span
+            >TableSerialization（Prompt+Model）<span class="prio-fire"
+              >🔥</span
+            ></a
+          >
         </div>
       </nav>
 
@@ -595,7 +876,8 @@
             <div class="icon">📊</div>
             <h1>tables_serialization.py — 逐函数详解</h1>
             <p class="subtitle">
-              10个 def/class · 逐层讲解 · 新手友好 · 从表格HTML到LLM上下文独立文本块
+              10个 def/class · 逐层讲解 · 新手友好 ·
+              从表格HTML到LLM上下文独立文本块
             </p>
             <div class="tag-row">
               <span class="tag">📊 表格序列化</span>
@@ -610,26 +892,515 @@
 
           <div class="slide-divider"><div class="divider-dot"></div></div>
 
-          <!-- ═══════ 〇、整体架构与函数索引 ═══════ -->
-          <div class="card" id="ch0">
-            <h2>🗺️ 〇、整体架构与函数索引 <span class="badge badge-blue">OVERVIEW</span></h2>
+          <!-- ═══════ 🤔 带着问题看文档 ═══════ -->
+          <div class="card" id="questions">
+            <h2>
+              🤔 带着问题看文档 — 10道思考题
+              <span class="badge badge-red">PRE-READ</span>
+            </h2>
             <div class="accent-bar"></div>
             <p class="desc">
-              本模块的核心任务：<strong>把 PDF 解析出的 HTML 表格，通过 LLM 转换成上下文独立的文本块</strong>，
-              以便后续存入向量数据库进行 RAG 检索。代码包含
+              在逐函数阅读之前，<strong>先带着这些问题去理解代码设计</strong>。每个问题都指向
+              tables_serialization.py
+              的一个关键设计决策，读完整个文档后你应该能回答它们。
+            </p>
+
+            <!-- 🔥 核心架构 -->
+            <div class="q-section-title">
+              <span class="icon">🔥</span> 核心架构问题
+            </div>
+
+            <div class="q-item">
+              <div class="q-num fire">1</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q1：为什么要把表格"序列化"成文本块？直接用 Markdown
+                    表格进向量库不行吗？</strong
+                  >
+                </p>
+                <p>
+                  这个模块的核心任务是生成"上下文独立的文本块"。什么情况下
+                  Markdown
+                  表格在向量库中检索不到？"上下文独立"到底是什么意思？如果表格里只有一行
+                  <code>| 100亿 | 15亿 |</code>，没有表头，LLM
+                  能理解这是什么吗？
+                </p>
+                <div class="q-hint">
+                  💡 提示：回顾 text_splitter.py 的切块机制——Markdown 表格被切成
+                  300 token 的小块后，行列关系可能被切在两个不同 chunk 中。
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>Markdown 表格直接进向量库有两个致命问题：</strong
+                ><br /><br />
+                ① <strong>被切分破坏</strong>：text_splitter 的
+                RecursiveCharacterTextSplitter
+                不认识表格边界。一个3列×30行的利润表（≈350 token）会被切成两个
+                chunk——chunk1 包含前20行，chunk2 包含后10行。表头只在 chunk1
+                中，chunk2 变成无头数据<br /><br />
+                ② <strong>上下文缺失</strong>：检索到
+                <code>| 100亿 | 15亿 |</code> 这样的行，LLM
+                不知道这是"营业收入100亿元同比增长15%"。序列化后的
+                information_block
+                是"<strong>营业收入在2024年为100亿元</strong>"——完整、自包含的句子<br /><br />
+                <strong>"上下文独立"的含义</strong>：每个 block
+                被检索到后，不需要依赖同一表格的其他行或表头就能被 LLM
+                正确理解。RAG 检索是"单片段命中"——你永远不知道用户会搜到哪个
+                block。
+              </div>
+            </details>
+
+            <div class="q-item">
+              <div class="q-num fire">2</div>
+              <div class="q-body">
+                <p>
+                  <strong>Q2：为什么给 LLM 的是 HTML 而不是 Markdown？</strong>
+                </p>
+                <p>
+                  代码中
+                  <code>table_content = table_info["html"]</code> 明确选择了
+                  HTML。回顾前面的 Q4（三种格式问题），HTML 相比 Markdown
+                  有哪些不可替代的优势？合并单元格（<code>colspan="3"</code>）用
+                  Markdown 能表达吗？
+                </p>
+                <div class="q-hint">
+                  💡
+                  提示：年报财务报表有大量合并单元格（如"营业总成本"横跨3列），Markdown
+                  会把它们"摊平"，LLM 会误判数据关系。
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>HTML 保留了 Markdown 无法表达的表格结构信息：</strong
+                ><br /><br />
+                年报利润表中：<code
+                  >&lt;td colspan="3"&gt;营业总成本&lt;/td&gt;</code
+                >
+                → 表示"营业总成本"横跨3个子列（营业成本+税金+费用）<br />
+                Markdown 输出：<code
+                  >| 营业总成本 | 营业总成本 | 营业总成本 |</code
+                >
+                → 重复3次，LLM 误以为有3个独立的"营业总成本"<br /><br />
+                LLM（GPT-4o）训练数据中包含大量 HTML，它能理解
+                <code>colspan</code> 和 <code>rowspan</code> 的语义含义。给 LLM
+                看原始的 HTML 表格 → 它理解的是和人类阅读 PDF
+                时完全一致的表格结构。这是 Markdown 的扁平化表示永远做不到的。
+              </div>
+            </details>
+
+            <div class="q-item">
+              <div class="q-num fire">3</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q3：system_prompt 中 "context-independent"
+                    是整个模块的灵魂，为什么？</strong
+                  >
+                </p>
+                <p>
+                  <code
+                    >"These blocks must be totally context-independent because
+                    they will be used as separate chunk to populate
+                    database."</code
+                  >
+                </p>
+                <p>
+                  如果一个信息块是"净利润：15亿元"，但没有说明是哪家公司、哪一年、什么币种，它被
+                  RAG 检索到后 LLM 能正确回答吗？每个 block
+                  需要包含什么才算"自给自足"？
+                </p>
+                <div class="q-hint">
+                  💡 提示：RAG 是"片段匹配"——检索命中的只是其中一个 block，其他
+                  block 不会被召回，所以每个 block 必须自足。
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong
+                  >"context-independent" 解决了 RAG 检索的根本矛盾——片段 vs
+                  完整上下文：</strong
+                ><br /><br />
+                用户问"比亚迪2024年净利润多少？"→ 向量检索返回 block #47 →
+                内容是"15亿元"<br />
+                如果 block 中没有"比亚迪"、"2024年"、"净利润"这些上下文词 → LLM
+                不知道这15亿是什么<br /><br />
+                <strong>正确的 context-independent block</strong
+                >："比亚迪股份有限公司2024年度合并利润表中净利润为15亿元人民币"<br />
+                包含：公司名 + 年份 + 指标名 + 数值 + 单位 →
+                <strong>自给自足的完整陈述</strong><br /><br />
+                这就是 system_prompt 要求 LLM 输出的格式——每个 information_block
+                都是一个独立的小段落。
+              </div>
+            </details>
+
+            <!-- ⚡ 并行机制 -->
+            <div class="q-section-title">
+              <span class="icon">⚡</span> 并行机制问题
+            </div>
+
+            <div class="q-item">
+              <div class="q-num bolt">4</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q4：为什么有两层并行？ThreadPoolExecutor（文件级）+
+                    asyncio（表格级）</strong
+                  >
+                </p>
+                <p>
+                  外层用多线程处理多个 JSON 文件，内层用 asyncio
+                  并发处理单个文件中的多个表格。为什么不只用一种？如果一个文件有
+                  50 个表格，只用 ThreadPoolExecutor 会怎样？只用 asyncio
+                  又会怎样？
+                </p>
+                <div class="q-hint">
+                  💡 提示：API 调用是 IO 密集型（asyncio 擅长），文件读写也是 IO
+                  操作（ThreadPool 擅长）。两者分工不同。<code
+                    >process_directory_parallel</code
+                  >
+                  + <code>async_serialize_tables</code>
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>两层并行解决了不同粒度的 IO 等待问题：</strong
+                ><br /><br />
+                <strong>外层 ThreadPoolExecutor（文件级）</strong>：同时处理多个
+                JSON 文件。文件 I/O（读JSON+保存JSON）会阻塞线程，用多线程让 CPU
+                在文件等待间隙切换到其他文件<br /><br />
+                <strong>内层 asyncio（表格级）</strong>：单个文件内 30 个表格 →
+                同时发送 30 个 LLM API 请求。LLM 调用是网络
+                IO（等待500ms-2s），asyncio 在此期间不阻塞线程<br /><br />
+                <strong>只用 ThreadPoolExecutor</strong>：50个表格顺序调用 LLM →
+                50×2s=100s<br />
+                <strong>只用 asyncio</strong>：无法同时处理多个文件 →
+                N个文件串行<br />
+                <strong>两层结合</strong>：文件并行 × 表格并发 → 最优
+              </div>
+            </details>
+
+            <div class="q-item">
+              <div class="q-num bolt">5</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q5：async_serialize_tables（异步）和
+                    serialize_tables（同步）的核心区别？</strong
+                  >
+                </p>
+                <p>
+                  异步版先把所有表格请求收集起来，一次性批量发送；同步版逐个发请求、逐个等回复。对一个有
+                  30 个表格的报告，两种方式的总耗时大约差多少倍？为什么 pipeline
+                  默认用异步版？
+                </p>
+                <div class="q-hint">
+                  💡 提示：同步版 = 30 × 单次延迟；异步版 ≈
+                  max(所有请求延迟)。考虑网络 RTT 通常在 500ms~2s 之间。
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>同步 vs 异步的时间差异是数量级的：</strong><br /><br />
+                <strong>同步版（serialize_tables）</strong>：<code
+                  >for table in tables: result = await llm_call(table)</code
+                >
+                → 30个表格 × 2秒/个 = <strong>60秒</strong><br />
+                <strong>异步版（async_serialize_tables）</strong>：<code
+                  >tasks = [llm_call(t) for t in tables]; results = await
+                  asyncio.gather(*tasks)</code
+                >
+                → 30个请求同时发出 →
+                <strong>≈2秒</strong>（最慢的那个）<br /><br />
+                <strong>加速比≈30倍</strong
+                >。这就是为什么默认用异步版——对于单个报告30+表格、数百个报告的批量处理，同步版完全不可用。
+              </div>
+            </details>
+
+            <!-- 📊 数据处理 -->
+            <div class="q-section-title">
+              <span class="icon">📊</span> 数据处理问题
+            </div>
+
+            <div class="q-item">
+              <div class="q-num data">6</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q6：_get_table_context()
+                    为什么要提取表格前后的上下文？不提取会怎样？</strong
+                  >
+                </p>
+                <p>
+                  代码提取了表格前的文本块和表格后的文本块作为上下文发给
+                  LLM。举个例子：表格标题"合并利润表"在表格上方的段落中，如果不提取，LLM
+                  只看到一张无名表格，能正确序列化吗？
+                </p>
+                <div class="q-hint">
+                  💡
+                  提示：年报中表格标题常常在表格<b>上方</b>的段落中，比如"下表列示了本公司
+                  2024 年度..."。还有脚注解释在表格<b>下方</b>。
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong
+                  >表格标题和脚注通常在 HTML 表格之外，不提取上下文 LLM
+                  只能盲猜：</strong
+                ><br /><br />
+                PDF
+                排版中，表格标题是独立段落（如"<em>合并利润表</em>"），表格主体是另一个元素。Docling
+                解析后它们分属不同的 children 节点。<br /><br />
+                <strong>不提取的后果</strong>：LLM 看到一张 3列×20行 的 HTML
+                表格，但不知道这是"利润表"还是"资产负债表" → 生成的
+                information_block 缺少表格标题 →
+                "营业收入100亿"变成了"某数字100亿"<br /><br />
+                提取前后各 500 字符的上下文 → LLM
+                能看到"下表列示了本公司2024年度合并利润表" → 生成的 block
+                带上正确的表格名称和年份
+              </div>
+            </details>
+
+            <div class="q-item">
+              <div class="q-num data">7</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q7：Pydantic Schema 中 subject_core_entity
+                    字段的设计有什么讲究？</strong
+                  >
+                </p>
+                <p>
+                  每个 information_block 都有
+                  subject_core_entity（如"营业收入"）。为什么需要这个字段？如果
+                  chunk text
+                  是"2024年为100亿元，2023年为80亿元"但没有主语，向量检索能匹配到"XX公司营收多少"吗？
+                </p>
+                <div class="q-hint">
+                  💡 提示：向量检索依赖语义——"营收"的 embedding
+                  和"2024年为100亿元"的 embedding，哪个更能匹配用户问题？subject
+                  让每个 block 有了"标题"。
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>subject_core_entity 是每个 block 的"嵌入锚点"：</strong
+                ><br /><br />
+                information_block
+                text："2024年为100亿元，2023年为80亿元，同比增长25%"<br />
+                这段 text 不含"营业收入"这个词 → embedding 和用户 query
+                "营业收入多少"的相似度低<br /><br />
+                但 subject_core_entity="营业收入" 被拼入最终 chunk text：<br />
+                <code
+                  >"营业收入：2024年为100亿元，2023年为80亿元，同比增长25%"</code
+                ><br />
+                → embedding 包含"营业收入"语义 → 与用户 query 完美匹配<br /><br />
+                这就是 subject 的设计价值：它让每个数值 block
+                有了明确的"主题标签"，大幅提升向量检索的召回率。
+              </div>
+            </details>
+
+            <div class="q-item">
+              <div class="q-num data">8</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q8：serialized 字段被写入原 JSON 的位置有什么讲究？</strong
+                  >
+                </p>
+                <p>
+                  看 async_serialize_tables() 中，<code>serialized</code>
+                  被插入到紧挨着 <code>html</code> 的位置。下游 text_splitter.py
+                  的
+                  <code>_get_serialized_tables_by_page()</code>
+                  怎么找到并使用它？如果写到了错误的位置会怎样？
+                </p>
+                <div class="q-hint">
+                  💡 提示：回顾 text_splitter.py 的
+                  <code>_get_serialized_tables_by_page()</code>——它检查
+                  <code>if 'serialized' not in table: continue</code>，然后读取
+                  <code>table["serialized"]["information_blocks"]</code>。
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong
+                  >serialized 写入原 JSON
+                  实现了"原地增强"而非"分离输出"：</strong
+                ><br /><br />
+                原始 table 对象：<code
+                  >{page:5, table_id:3, html:"...", md:"...", json:[...]}</code
+                ><br />
+                写入后：<code
+                  >{page:5, table_id:3, html:"...", md:"...", json:[...],
+                  serialized:{information_blocks:[...]}}</code
+                ><br /><br />
+                下游 <code>_get_serialized_tables_by_page()</code> 遍历所有
+                tables → 跳过无 serialized 字段的 → 读取
+                <code>table["serialized"]["information_blocks"]</code
+                ><br /><br />
+                <strong>写错位置的后果</strong>：① 写到 table 对象外部 →
+                下游找不到 ② 字段改名 →
+                <code>if 'serialized' not in table</code> 跳过
+              </div>
+            </details>
+
+            <!-- 🎯 全局视角 -->
+            <div class="q-section-title">
+              <span class="icon">🎯</span> 全局视角问题
+            </div>
+
+            <div class="q-item">
+              <div class="q-num global">9</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q9：这个模块在整个 RAG
+                    管线中是必选还是可选？不运行会怎样？</strong
+                  >
+                </p>
+                <p>
+                  看 pipeline.py 的调用链和 TextSplitter 的构造参数：<code
+                    >serialized_tables_dir</code
+                  >
+                  是 <code>Optional</code>。不运行
+                  tables_serialization.py，表格数据还能被检索到吗？两种路径的检索效果差异有多大？
+                </p>
+                <div class="q-hint">
+                  💡 提示：路径 A（Markdown
+                  嵌入页文本）表格依然能检索，但可能被切散；路径
+                  B（序列化独立块）每个数据行都是完整检索单元。这是<b>渐进增强</b>设计。
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong>此模块是可选组件，属于"渐进增强"设计：</strong
+                ><br /><br />
+                <strong>路径 A（不运行此模块）</strong>：表格以 Markdown
+                形式嵌入 page.text → 被 text_splitter 切分为 chunk →
+                存入向量库。效果：表格<strong>能被检索</strong>，但可能被切散（跨chunk），且缺少上下文独立的自然语言描述<br /><br />
+                <strong>路径 B（运行此模块）</strong>：额外生成 serialized_table
+                chunk → 每个数据行都是独立检索单元 →
+                "营业收入2024年100亿元"作为完整句子可被精确匹配<br /><br />
+                <strong>检索效果差异</strong>：用户问"比亚迪营收多少" →
+                路径A返回包含表格片段的 chunk（可能有无关数据）→
+                路径B直接返回"营业收入：2024年100亿元"（精准命中）
+              </div>
+            </details>
+
+            <div class="q-item">
+              <div class="q-num global">10</div>
+              <div class="q-body">
+                <p>
+                  <strong
+                    >Q10：一个大表格生成 100+ 个
+                    information_block，对下游检索有什么影响？</strong
+                  >
+                </p>
+                <p>
+                  上市公司完整利润表可能有 50-100 行，每行生成一个独立 block
+                  存入向量库。好处是每行数据都能被精确检索到；坏处是什么？对
+                  Top-K 检索有什么影响？
+                </p>
+                <div class="q-hint">
+                  💡 提示：考虑向量库中 "serialized_table" 类型 chunk
+                  的占比。如果 100 个表格 block 挤占了正文内容在 Top-K
+                  中的位置，会不会导致 LLM 看不到用户真正需要的上下文？
+                </div>
+              </div>
+            </div>
+
+            <details class="answer">
+              <summary>📝 点击查看答案</summary>
+              <div class="answer-body">
+                <strong
+                  >100+ blocks 带来高召回的同时引入了"表格噪声污染"：</strong
+                ><br /><br />
+                <strong>好处</strong>：每一行财务数据都是独立检索单元 →
+                搜索"营业成本"精确命中对应 block → 召回率极高<br /><br />
+                <strong>坏处（Top-K 污染）</strong>：200
+                chunk（100文本+100表格）。query "比亚迪2024年发展战略" →
+                embedding 可能给表格 block
+                偏高的分数（数字和年份与正文语义重叠） → Top-28 中 20 个是表格
+                block → 正文"战略描述"被挤出 → LLM 只能从数字中猜战略 →
+                答案质量下降<br /><br />
+                <strong>缓解方案</strong>：① 检索时按 type 加权（content 优先于
+                serialized_table）② 限制每类在 Top-K 中的比例 ③ hybrid search
+                增加多样性
+              </div>
+            </details>
+
+            <div class="highlight tip" style="margin-top: 20px">
+              <strong>👶 建议阅读顺序：</strong>Q1 → Q3（理解为什么需要序列化）→
+              Q2（为什么用 HTML）→ Q6 → Q7（数据处理核心）→ Q4 → Q5（并行机制）→
+              Q8（数据流）→ Q9 →
+              Q10（全局视角）。每看完一个函数卡片，问自己："<em>如果把这个函数去掉，系统会怎样？</em>"
+            </div>
+          </div>
+
+          <div class="slide-divider"><div class="divider-dot"></div></div>
+
+          <!-- ═══════ 〇、整体架构与函数索引 ═══════ -->
+          <div class="card" id="ch0">
+            <h2>
+              🗺️ 〇、整体架构与函数索引
+              <span class="badge badge-blue">OVERVIEW</span>
+            </h2>
+            <div class="accent-bar"></div>
+            <p class="desc">
+              本模块的核心任务：<strong
+                >把 PDF 解析出的 HTML 表格，通过 LLM
+                转换成上下文独立的文本块</strong
+              >， 以便后续存入向量数据库进行 RAG 检索。代码包含
               <strong>1 个主类 + 1 个静态配置类 + 1 个日志工具</strong>。
             </p>
 
             <!-- 架构图 -->
             <div class="arch-diagram">
               <div class="arch-row">
-                <div class="arch-node">📄 JSON报告<br/><small>(含HTML表格)</small></div>
+                <div class="arch-node">
+                  📄 JSON报告<br /><small>(含HTML表格)</small>
+                </div>
                 <span class="arch-arrow">→</span>
-                <div class="arch-node core">🔍 _get_table_context<br/><small>提取上下文</small></div>
+                <div class="arch-node core">
+                  🔍 _get_table_context<br /><small>提取上下文</small>
+                </div>
                 <span class="arch-arrow">→</span>
-                <div class="arch-node green">🤖 LLM序列化<br/><small>GPT-4o-mini</small></div>
+                <div class="arch-node green">
+                  🤖 LLM序列化<br /><small>GPT-4o-mini</small>
+                </div>
                 <span class="arch-arrow">→</span>
-                <div class="arch-node">📝 上下文独立<br/><small>文本块</small></div>
+                <div class="arch-node">
+                  📝 上下文独立<br /><small>文本块</small>
+                </div>
               </div>
               <span class="arch-arrow-down">⬇</span>
               <div class="arch-row">
@@ -637,37 +1408,142 @@
                 <span class="arch-arrow">|</span>
                 <div class="arch-node orange">异步: async_serialize_tables</div>
                 <span class="arch-arrow">→</span>
-                <div class="arch-node green">并行文件: process_directory_parallel</div>
+                <div class="arch-node green">
+                  并行文件: process_directory_parallel
+                </div>
               </div>
             </div>
 
             <div class="explain-box">
               <div class="explain-title">💡 为什么需要"表格序列化"？</div>
               <ul>
-                <li><strong>HTML 表格不能直接入库：</strong>一个 <code>&lt;table&gt;</code> 标签里的数据高度依赖表头、上下文才能理解，单独拆开语义不完整</li>
-                <li><strong>LLM 做"翻译"：</strong>把每个数据行 + 所有表头 + 上下文"烘焙"成一个自给自足的文本块——这就是 serialization</li>
-                <li><strong>Pydantic 约束输出格式：</strong>用 <code>TableBlocksCollection</code> 确保 LLM 返回结构化的结果，而非自由文本</li>
+                <li>
+                  <strong>HTML 表格不能直接入库：</strong>一个
+                  <code>&lt;table&gt;</code>
+                  标签里的数据高度依赖表头、上下文才能理解，单独拆开语义不完整
+                </li>
+                <li>
+                  <strong>LLM 做"翻译"：</strong>把每个数据行 + 所有表头 +
+                  上下文"烘焙"成一个自给自足的文本块——这就是 serialization
+                </li>
+                <li>
+                  <strong>Pydantic 约束输出格式：</strong>用
+                  <code>TableBlocksCollection</code> 确保 LLM
+                  返回结构化的结果，而非自由文本
+                </li>
               </ul>
             </div>
 
             <h3>📋 函数索引（点击跳转）</h3>
             <table class="data-table">
-              <tr><th>#</th><th>函数名</th><th>所属</th><th>一句话作用</th><th>优先级</th></tr>
-              <tr><td>①</td><td><a href="#f1"><code>TqdmLoggingHandler / process_messages</code></a></td><td>模块级</td><td>让 logging 输出兼容 tqdm 进度条</td><td>⭐</td></tr>
-              <tr><td>②</td><td><a href="#f2"><code>TableSerializer.__init__</code></a></td><td>TableSerializer</td><td>初始化日志系统和临时目录</td><td>⭐</td></tr>
-              <tr><td>③</td><td><a href="#f3"><code>_get_table_context</code></a></td><td>TableSerializer</td><td>在页面中定位表格的前后文字上下文</td><td>🔥</td></tr>
-              <tr><td>④</td><td><a href="#f4"><code>_send_serialization_request</code></a></td><td>TableSerializer</td><td>组装 prompt 发给 LLM，要求结构化输出</td><td>🔥</td></tr>
-              <tr><td>⑤</td><td><a href="#f5"><code>_serialize_table</code></a></td><td>TableSerializer</td><td>串联上下文提取 + LLM 调用，完成单表序列化</td><td>🔥</td></tr>
-              <tr><td>⑥</td><td><a href="#f6"><code>serialize_tables</code></a></td><td>TableSerializer</td><td>同步遍历所有表格并序列化</td><td>—</td></tr>
-              <tr><td>⑦</td><td><a href="#f7"><code>async_serialize_tables</code></a></td><td>TableSerializer</td><td>异步并发处理所有表格</td><td>⭐</td></tr>
-              <tr><td>⑧</td><td><a href="#f8"><code>process_file</code></a></td><td>TableSerializer</td><td>读取一个 JSON → 异步序列化 → 写回</td><td>⭐</td></tr>
-              <tr><td>⑨</td><td><a href="#f9"><code>process_directory_parallel</code></a></td><td>TableSerializer</td><td>线程池并行处理目录下所有 JSON</td><td>⭐</td></tr>
-              <tr><td>⑩</td><td><a href="#f10"><code>TableSerialization</code></a></td><td>TableSerialization</td><td>静态配置类：System Prompt + Pydantic 模型</td><td>🔥</td></tr>
+              <tr>
+                <th>#</th>
+                <th>函数名</th>
+                <th>所属</th>
+                <th>一句话作用</th>
+                <th>优先级</th>
+              </tr>
+              <tr>
+                <td>①</td>
+                <td>
+                  <a href="#f1"
+                    ><code>TqdmLoggingHandler / process_messages</code></a
+                  >
+                </td>
+                <td>模块级</td>
+                <td>让 logging 输出兼容 tqdm 进度条</td>
+                <td>⭐</td>
+              </tr>
+              <tr>
+                <td>②</td>
+                <td>
+                  <a href="#f2"><code>TableSerializer.__init__</code></a>
+                </td>
+                <td>TableSerializer</td>
+                <td>初始化日志系统和临时目录</td>
+                <td>⭐</td>
+              </tr>
+              <tr>
+                <td>③</td>
+                <td>
+                  <a href="#f3"><code>_get_table_context</code></a>
+                </td>
+                <td>TableSerializer</td>
+                <td>在页面中定位表格的前后文字上下文</td>
+                <td>🔥</td>
+              </tr>
+              <tr>
+                <td>④</td>
+                <td>
+                  <a href="#f4"><code>_send_serialization_request</code></a>
+                </td>
+                <td>TableSerializer</td>
+                <td>组装 prompt 发给 LLM，要求结构化输出</td>
+                <td>🔥</td>
+              </tr>
+              <tr>
+                <td>⑤</td>
+                <td>
+                  <a href="#f5"><code>_serialize_table</code></a>
+                </td>
+                <td>TableSerializer</td>
+                <td>串联上下文提取 + LLM 调用，完成单表序列化</td>
+                <td>🔥</td>
+              </tr>
+              <tr>
+                <td>⑥</td>
+                <td>
+                  <a href="#f6"><code>serialize_tables</code></a>
+                </td>
+                <td>TableSerializer</td>
+                <td>同步遍历所有表格并序列化</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>⑦</td>
+                <td>
+                  <a href="#f7"><code>async_serialize_tables</code></a>
+                </td>
+                <td>TableSerializer</td>
+                <td>异步并发处理所有表格</td>
+                <td>⭐</td>
+              </tr>
+              <tr>
+                <td>⑧</td>
+                <td>
+                  <a href="#f8"><code>process_file</code></a>
+                </td>
+                <td>TableSerializer</td>
+                <td>读取一个 JSON → 异步序列化 → 写回</td>
+                <td>⭐</td>
+              </tr>
+              <tr>
+                <td>⑨</td>
+                <td>
+                  <a href="#f9"><code>process_directory_parallel</code></a>
+                </td>
+                <td>TableSerializer</td>
+                <td>线程池并行处理目录下所有 JSON</td>
+                <td>⭐</td>
+              </tr>
+              <tr>
+                <td>⑩</td>
+                <td>
+                  <a href="#f10"><code>TableSerialization</code></a>
+                </td>
+                <td>TableSerialization</td>
+                <td>静态配置类：System Prompt + Pydantic 模型</td>
+                <td>🔥</td>
+              </tr>
             </table>
 
             <div class="highlight tip">
-              <strong>👶 新手阅读建议：</strong>按优先级阅读——先读 🔥（5个核心），再读 ⭐（5个重要），最后读 —（1个辅助）。
-              每个函数卡片都包含 <strong>"这个函数做什么"</strong>（大白话解释）、<strong>"关键代码逻辑"</strong>
+              <strong>👶 新手阅读建议：</strong>按优先级阅读——先读
+              🔥（5个核心），再读 ⭐（5个重要），最后读 —（1个辅助）。
+              每个函数卡片都包含
+              <strong>"这个函数做什么"</strong>（大白话解释）、<strong
+                >"关键代码逻辑"</strong
+              >
               和 <strong>"它在流程中的位置"</strong> 三个部分。
             </div>
           </div>
@@ -676,17 +1552,26 @@
 
           <!-- ═══════ ① 模块级工具 ═══════ -->
           <div class="card" id="f1">
-            <h2>① <code>TqdmLoggingHandler</code> + <code>process_messages()</code> — 模块级工具 <span class="badge badge-cyan">UTILITY</span></h2>
+            <h2>
+              ① <code>TqdmLoggingHandler</code> +
+              <code>process_messages()</code> — 模块级工具
+              <span class="badge badge-cyan">UTILITY</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这些做什么？（大白话）</h3>
             <p class="desc">
-              <strong>问题：</strong>在多线程并行处理时，tqdm 进度条和 logging 日志会互相"打架"——日志输出会破坏进度条的显示。
-              <strong>解决方案：</strong>用一个全局消息队列 <code>message_queue</code> 把日志暂存起来，等 tqdm 空闲时再统一输出。
+              <strong>问题：</strong>在多线程并行处理时，tqdm 进度条和 logging
+              日志会互相"打架"——日志输出会破坏进度条的显示。
+              <strong>解决方案：</strong>用一个全局消息队列
+              <code>message_queue</code> 把日志暂存起来，等 tqdm
+              空闲时再统一输出。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre>message_queue = Queue()  <span class="c1"># ═══ 全局消息队列 ═══</span>
 
 <span class="k">class</span> <span class="nf">TqdmLoggingHandler</span>(logging.Handler):
@@ -704,16 +1589,28 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong>为什么用 Queue？</strong>多个线程可能同时产生日志，Queue 是线程安全的，保证消息不丢失、不混乱</li>
-                <li><strong><code>tqdm.write()</code></strong> 是 tqdm 提供的安全输出方法——它在输出前先清除当前进度行，输出后再重新绘制进度条</li>
-                <li><strong><code>process_messages()</code></strong> 在主循环中定期被调用（见⑨），一次性清空队列中所有积压消息</li>
+                <li>
+                  <strong>为什么用 Queue？</strong
+                  >多个线程可能同时产生日志，Queue
+                  是线程安全的，保证消息不丢失、不混乱
+                </li>
+                <li>
+                  <strong><code>tqdm.write()</code></strong> 是 tqdm
+                  提供的安全输出方法——它在输出前先清除当前进度行，输出后再重新绘制进度条
+                </li>
+                <li>
+                  <strong><code>process_messages()</code></strong>
+                  在主循环中定期被调用（见⑨），一次性清空队列中所有积压消息
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
               <strong>📍 它在流程中的位置：</strong>
-              <code>TqdmLoggingHandler</code> 在② <code>__init__</code> 中被注册到 logger；
-              <code>process_messages()</code> 在⑨ <code>process_directory_parallel</code> 的主循环中定期调用
+              <code>TqdmLoggingHandler</code> 在②
+              <code>__init__</code> 中被注册到 logger；
+              <code>process_messages()</code> 在⑨
+              <code>process_directory_parallel</code> 的主循环中定期调用
             </div>
           </div>
 
@@ -721,17 +1618,23 @@
 
           <!-- ═══════ ② TableSerializer.__init__ ═══════ -->
           <div class="card" id="f2">
-            <h2>② <code>TableSerializer.__init__()</code> — 初始化解析器 <span class="badge badge-blue">CONSTRUCTOR</span></h2>
+            <h2>
+              ② <code>TableSerializer.__init__()</code> — 初始化解析器
+              <span class="badge badge-blue">CONSTRUCTOR</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个函数做什么？（大白话）</h3>
             <p class="desc">
-              继承父类 <code>BaseOpenaiProcessor</code>（提供 OpenAI API 调用能力），
+              继承父类 <code>BaseOpenaiProcessor</code>（提供 OpenAI API
+              调用能力），
               同时<strong>搭建自己的日志系统</strong>和<strong>临时文件目录</strong>。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre><span class="k">class</span> <span class="nf">TableSerializer</span>(BaseOpenaiProcessor):
     <span class="k">def</span> <span class="nf">__init__</span>(<span class="bp">self</span>, preserve_temp_files: <span class="nb">bool</span> = <span class="kc">True</span>):
         <span class="nb">super</span>().<span class="fm">__init__</span>()  <span class="c1"># ═══ 继承 OpenAI 客户端 ═══</span>
@@ -750,14 +1653,25 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong><code>handlers.clear()</code></strong>：清除默认 handler，避免日志重复输出</li>
-                <li><strong><code>propagate = False</code></strong>：阻止日志向上传递到 root logger，确保只通过我们的 TqdmLoggingHandler 输出</li>
-                <li><strong><code>preserve_temp_files</code></strong>：控制是否保留中间请求文件（调试用），默认为 True</li>
+                <li>
+                  <strong><code>handlers.clear()</code></strong
+                  >：清除默认 handler，避免日志重复输出
+                </li>
+                <li>
+                  <strong><code>propagate = False</code></strong
+                  >：阻止日志向上传递到 root logger，确保只通过我们的
+                  TqdmLoggingHandler 输出
+                </li>
+                <li>
+                  <strong><code>preserve_temp_files</code></strong
+                  >：控制是否保留中间请求文件（调试用），默认为 True
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
-              <strong>📍 它在流程中的位置：</strong> 创建 TableSerializer 实例的第一步，为后续 API 调用和日志输出做准备
+              <strong>📍 它在流程中的位置：</strong> 创建 TableSerializer
+              实例的第一步，为后续 API 调用和日志输出做准备
             </div>
           </div>
 
@@ -765,18 +1679,24 @@
 
           <!-- ═══════ ③ _get_table_context ═══════ -->
           <div class="card" id="f3">
-            <h2>③ <code>_get_table_context()</code> — 提取表格上下文 <span class="badge badge-red">CORE</span></h2>
+            <h2>
+              ③ <code>_get_table_context()</code> — 提取表格上下文
+              <span class="badge badge-red">CORE</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个函数做什么？（大白话）</h3>
             <p class="desc">
-              在 PDF 解析产生的 JSON 报告中，<strong>找到目标表格所在的页面，然后截取它"上面最近的文字"和"下面最近的文字"</strong>，
-              作为 LLM 理解表格的辅助上下文。<br/><br/>
+              在 PDF 解析产生的 JSON
+              报告中，<strong>找到目标表格所在的页面，然后截取它"上面最近的文字"和"下面最近的文字"</strong>，
+              作为 LLM 理解表格的辅助上下文。<br /><br />
               比如：表格上方可能写着"下表展示了2023年各季度营收"，下方可能有脚注"单位：百万元"——这些文字对表格理解至关重要。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre><span class="k">def</span> <span class="nf">_get_table_context</span>(<span class="bp">self</span>, json_report, target_table_index):
     <span class="c1"># ═══ 1. 找到目标表格的页码 ═══</span>
     table_info = <span class="nb">next</span>(t <span class="k">for</span> t <span class="ow">in</span> json_report[<span class="s">"tables"</span>] <span class="k">if</span> t[<span class="s">"table_id"</span>] == target_table_index)
@@ -812,15 +1732,29 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong>为什么需要找"上一张表"的位置？</strong>如果页面上有3张表，第2张表的上下文应该是第1张表之后、第2张表之前的文字——不能跨表取上下文，否则会张冠李戴</li>
-                <li><strong>下方最多取3个块：</strong>控制 token 消耗——实际代码中如果上下两张表之间有超过3个文字块，只取最近的3个</li>
-                <li><strong>空安全：</strong>如果目标表在页面上第一个位置（上方无文字），<code>start=0</code>，<code>context_before</code> 为空列表</li>
+                <li>
+                  <strong>为什么需要找"上一张表"的位置？</strong
+                  >如果页面上有3张表，第2张表的上下文应该是第1张表之后、第2张表之前的文字——不能跨表取上下文，否则会张冠李戴
+                </li>
+                <li>
+                  <strong>下方最多取3个块：</strong>控制 token
+                  消耗——实际代码中如果上下两张表之间有超过3个文字块，只取最近的3个
+                </li>
+                <li>
+                  <strong>空安全：</strong
+                  >如果目标表在页面上第一个位置（上方无文字），<code>start=0</code>，<code
+                    >context_before</code
+                  >
+                  为空列表
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
               <strong>📍 它在流程中的位置：</strong>
-              被⑤ <code>_serialize_table</code> 调用 → 返回的 <code>context_before</code> 和 <code>context_after</code> 传给④ <code>_send_serialization_request</code> 组装 prompt
+              被⑤ <code>_serialize_table</code> 调用 → 返回的
+              <code>context_before</code> 和 <code>context_after</code> 传给④
+              <code>_send_serialization_request</code> 组装 prompt
             </div>
           </div>
 
@@ -828,17 +1762,25 @@
 
           <!-- ═══════ ④ _send_serialization_request ═══════ -->
           <div class="card" id="f4">
-            <h2>④ <code>_send_serialization_request()</code> — 发请求给 LLM <span class="badge badge-purple">LLM CALL</span></h2>
+            <h2>
+              ④ <code>_send_serialization_request()</code> — 发请求给 LLM
+              <span class="badge badge-purple">LLM CALL</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个函数做什么？（大白话）</h3>
             <p class="desc">
-              把 HTML 表格 + 上下文文字<strong>拼成一段 prompt</strong>，发给 GPT-4o-mini，
-              并要求 LLM 按照 <code>TableBlocksCollection</code> 的 Pydantic schema 输出<strong>结构化 JSON</strong>。
+              把 HTML 表格 + 上下文文字<strong>拼成一段 prompt</strong>，发给
+              GPT-4o-mini， 并要求 LLM 按照
+              <code>TableBlocksCollection</code> 的 Pydantic schema 输出<strong
+                >结构化 JSON</strong
+              >。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre><span class="k">def</span> <span class="nf">_send_serialization_request</span>(<span class="bp">self</span>, table, context_before, context_after):
     user_prompt = <span class="s">""</span>
 
@@ -864,16 +1806,34 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong><code>temperature=0</code></strong>：要求 LLM 输出高度确定性——表格序列化不需要创意，需要准确</li>
-                <li><strong><code>is_structured=True</code>：</strong>告诉父类使用结构化输出模式（function calling / response_format），确保返回的是符合 Pydantic schema 的 JSON</li>
-                <li><strong>上下文是可选的：</strong>如果 <code>context_before</code> 为空（表格在页面顶部），就直接传入表格；同样，<code>context_after</code> 也可为空</li>
-                <li><strong><code>count_tokens()</code>：</strong>代码中还统计了输入和输出 token 数，用于成本追踪和调试</li>
+                <li>
+                  <strong><code>temperature=0</code></strong
+                  >：要求 LLM 输出高度确定性——表格序列化不需要创意，需要准确
+                </li>
+                <li>
+                  <strong><code>is_structured=True</code>：</strong
+                  >告诉父类使用结构化输出模式（function calling /
+                  response_format），确保返回的是符合 Pydantic schema 的 JSON
+                </li>
+                <li>
+                  <strong>上下文是可选的：</strong>如果
+                  <code>context_before</code>
+                  为空（表格在页面顶部），就直接传入表格；同样，<code
+                    >context_after</code
+                  >
+                  也可为空
+                </li>
+                <li>
+                  <strong><code>count_tokens()</code>：</strong
+                  >代码中还统计了输入和输出 token 数，用于成本追踪和调试
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
               <strong>📍 它在流程中的位置：</strong>
-              被⑤ <code>_serialize_table</code> 调用 → 返回 Pydantic 对象（符合 <code>TableBlocksCollection</code> schema）
+              被⑤ <code>_serialize_table</code> 调用 → 返回 Pydantic 对象（符合
+              <code>TableBlocksCollection</code> schema）
             </div>
           </div>
 
@@ -881,17 +1841,22 @@
 
           <!-- ═══════ ⑤ _serialize_table ═══════ -->
           <div class="card" id="f5">
-            <h2>⑤ <code>_serialize_table()</code> — 单表序列化调度器 <span class="badge badge-orange">ORCHESTRATOR</span></h2>
+            <h2>
+              ⑤ <code>_serialize_table()</code> — 单表序列化调度器
+              <span class="badge badge-orange">ORCHESTRATOR</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个函数做什么？（大白话）</h3>
             <p class="desc">
-              它是<strong>单个表格序列化的"总指挥"</strong>：先调用③提取上下文，再取出表格的 HTML，
-              最后交给④发给 LLM——三步一气呵成。
+              它是<strong>单个表格序列化的"总指挥"</strong>：先调用③提取上下文，再取出表格的
+              HTML， 最后交给④发给 LLM——三步一气呵成。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre><span class="k">def</span> <span class="nf">_serialize_table</span>(<span class="bp">self</span>, json_report: <span class="nb">dict</span>, target_table_index: <span class="nb">int</span>) <span class="o">-&gt;</span> <span class="nb">dict</span>:
     <span class="c1"># ═══ Step 1: 提取上下文 ═══</span>
     context_before, context_after = <span class="bp">self</span>._get_table_context(json_report, target_table_index)
@@ -912,15 +1877,30 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong>为什么拆成三个函数？</strong>③负责数据定位，④负责 API 通信，⑤负责串联——各司其职，方便单元测试和复用</li>
-                <li><strong>两次查找 table_info：</strong>③中查一次（为了获取页码），⑤中再查一次（为了获取 HTML 内容）。这是为了让③和⑤各自独立，不互相依赖内部状态</li>
-                <li><strong>结果格式：</strong>返回的是 <code>TableBlocksCollection</code> Pydantic 对象，包含 <code>subject_core_entities_list</code>、<code>relevant_headers_list</code>、<code>information_blocks</code></li>
+                <li>
+                  <strong>为什么拆成三个函数？</strong>③负责数据定位，④负责 API
+                  通信，⑤负责串联——各司其职，方便单元测试和复用
+                </li>
+                <li>
+                  <strong>两次查找 table_info：</strong
+                  >③中查一次（为了获取页码），⑤中再查一次（为了获取 HTML
+                  内容）。这是为了让③和⑤各自独立，不互相依赖内部状态
+                </li>
+                <li>
+                  <strong>结果格式：</strong>返回的是
+                  <code>TableBlocksCollection</code> Pydantic 对象，包含
+                  <code>subject_core_entities_list</code
+                  >、<code>relevant_headers_list</code>、<code
+                    >information_blocks</code
+                  >
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
               <strong>📍 它在流程中的位置：</strong>
-              被⑥ <code>serialize_tables</code> 和⑦ <code>async_serialize_tables</code> 调用 → 调用③和④完成实际工作
+              被⑥ <code>serialize_tables</code> 和⑦
+              <code>async_serialize_tables</code> 调用 → 调用③和④完成实际工作
             </div>
           </div>
 
@@ -928,17 +1908,25 @@
 
           <!-- ═══════ ⑥ serialize_tables ═══════ -->
           <div class="card" id="f6">
-            <h2>⑥ <code>serialize_tables()</code> — 同步处理所有表格 <span class="badge badge-blue">SYNC</span></h2>
+            <h2>
+              ⑥ <code>serialize_tables()</code> — 同步处理所有表格
+              <span class="badge badge-blue">SYNC</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个函数做什么？（大白话）</h3>
             <p class="desc">
-              遍历 JSON 报告中的每一张表格，<strong>逐个调用</strong>⑤进行序列化，
-              结果直接写入原 JSON 的 <code>"serialized"</code> 字段中。这是最简单的"一个接一个"的处理方式。
+              遍历 JSON
+              报告中的每一张表格，<strong>逐个调用</strong>⑤进行序列化，
+              结果直接写入原 JSON 的
+              <code>"serialized"</code>
+              字段中。这是最简单的"一个接一个"的处理方式。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre><span class="k">def</span> <span class="nf">serialize_tables</span>(<span class="bp">self</span>, json_report: <span class="nb">dict</span>) <span class="o">-&gt;</span> <span class="nb">dict</span>:
     <span class="k">for</span> table <span class="ow">in</span> json_report[<span class="s">"tables"</span>]:
         table_index = table[<span class="s">"table_id"</span>]
@@ -955,14 +1943,27 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong>原地修改（in-place）：</strong>直接在原 <code>json_report</code> 字典上添加 <code>"serialized"</code> 字段，不创建新数据结构</li>
-                <li><strong>串行 = 慢但简单：</strong>每张表都要等上一张处理完。如果一个文档有20张表，就是20次串行 API 调用，适合小批量处理</li>
-                <li><strong>实际使用：</strong>目前代码中主要通过⑦异步版本处理，⑥作为备选方案保留</li>
+                <li>
+                  <strong>原地修改（in-place）：</strong>直接在原
+                  <code>json_report</code> 字典上添加
+                  <code>"serialized"</code> 字段，不创建新数据结构
+                </li>
+                <li>
+                  <strong>串行 = 慢但简单：</strong
+                  >每张表都要等上一张处理完。如果一个文档有20张表，就是20次串行
+                  API 调用，适合小批量处理
+                </li>
+                <li>
+                  <strong>实际使用：</strong
+                  >目前代码中主要通过⑦异步版本处理，⑥作为备选方案保留
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
-              <strong>📍 它在流程中的位置：</strong> 直接可被外部调用；在⑧ <code>process_file</code> 中通过⑦异步版本间接使用。目前已不直接使用⑥。
+              <strong>📍 它在流程中的位置：</strong> 直接可被外部调用；在⑧
+              <code>process_file</code>
+              中通过⑦异步版本间接使用。目前已不直接使用⑥。
             </div>
           </div>
 
@@ -970,17 +1971,22 @@
 
           <!-- ═══════ ⑦ async_serialize_tables ═══════ -->
           <div class="card" id="f7">
-            <h2>⑦ <code>async_serialize_tables()</code> — 异步并发处理 <span class="badge badge-green">ASYNC</span></h2>
+            <h2>
+              ⑦ <code>async_serialize_tables()</code> — 异步并发处理
+              <span class="badge badge-green">ASYNC</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个函数做什么？（大白话）</h3>
             <p class="desc">
-              和⑥做同样的事，但用<strong>异步方式一次性发送所有表格的请求</strong>——对所有表格同时提取上下文、同时发送 LLM 请求，
-              等所有结果回来后再统一写回 JSON。速度远快于串行。
+              和⑥做同样的事，但用<strong>异步方式一次性发送所有表格的请求</strong>——对所有表格同时提取上下文、同时发送
+              LLM 请求， 等所有结果回来后再统一写回 JSON。速度远快于串行。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre><span class="k">async</span> <span class="k">def</span> <span class="nf">async_serialize_tables</span>(<span class="bp">self</span>, json_report, ...):
     queries = []
     table_indices = []
@@ -1019,15 +2025,30 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong><code>AsyncOpenaiProcessor</code></strong>：父类中定义的异步请求处理器，内部使用 <code>aiohttp</code> 并发发送 API 请求——类似"10个窗口同时办业务"</li>
-                <li><strong>插入位置策略：</strong>结果被插入到 <code>"html"</code> 字段之后——这样 JSON 序列化后的字段顺序是 <code>table_id → ... → html → serialized → ...</code>，保持可读性</li>
-                <li><strong><code>zip()</code> 保证顺序一致：</strong><code>table_indices</code> 和 <code>results</code> 按相同顺序排列，确保结果写回正确的表格</li>
+                <li>
+                  <strong><code>AsyncOpenaiProcessor</code></strong
+                  >：父类中定义的异步请求处理器，内部使用
+                  <code>aiohttp</code> 并发发送 API
+                  请求——类似"10个窗口同时办业务"
+                </li>
+                <li>
+                  <strong>插入位置策略：</strong>结果被插入到
+                  <code>"html"</code> 字段之后——这样 JSON 序列化后的字段顺序是
+                  <code>table_id → ... → html → serialized → ...</code
+                  >，保持可读性
+                </li>
+                <li>
+                  <strong><code>zip()</code> 保证顺序一致：</strong
+                  ><code>table_indices</code> 和
+                  <code>results</code> 按相同顺序排列，确保结果写回正确的表格
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
               <strong>📍 它在流程中的位置：</strong>
-              被⑧ <code>process_file</code> 调用 → 通过 <code>AsyncOpenaiProcessor</code> 并发调用 LLM API
+              被⑧ <code>process_file</code> 调用 → 通过
+              <code>AsyncOpenaiProcessor</code> 并发调用 LLM API
             </div>
           </div>
 
@@ -1035,17 +2056,24 @@
 
           <!-- ═══════ ⑧ process_file ═══════ -->
           <div class="card" id="f8">
-            <h2>⑧ <code>process_file()</code> — 处理单个 JSON 文件 <span class="badge badge-orange">FILE HANDLER</span></h2>
+            <h2>
+              ⑧ <code>process_file()</code> — 处理单个 JSON 文件
+              <span class="badge badge-orange">FILE HANDLER</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个函数做什么？（大白话）</h3>
             <p class="desc">
-              读取一个 JSON 文件 → 调用⑦异步序列化所有表格 → 写回同一个 JSON 文件。
-              因为⑦是 <code>async</code>，所以这里需要<strong>创建事件循环</strong>来运行它。
+              读取一个 JSON 文件 → 调用⑦异步序列化所有表格 → 写回同一个 JSON
+              文件。 因为⑦是
+              <code>async</code
+              >，所以这里需要<strong>创建事件循环</strong>来运行它。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre><span class="k">def</span> <span class="nf">process_file</span>(<span class="bp">self</span>, json_path: Path) <span class="o">-&gt;</span> <span class="kc">None</span>:
     <span class="k">with</span> <span class="nb">open</span>(json_path, <span class="s">'r'</span>, encoding=<span class="s">'utf-8'</span>) <span class="k">as</span> f:
         json_report = json.load(f)
@@ -1068,15 +2096,26 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong>为什么创建新事件循环？</strong>因为⑨在多线程中调用 <code>process_file</code>，每个线程需要独立的事件循环</li>
-                <li><strong><code>thread_id</code> 用于临时文件名：</strong>避免多线程同时写同一个临时文件导致冲突</li>
-                <li><strong>临时文件清理：</strong>请求文件和结果文件在使用后通过 <code>os.remove()</code> 删除（除非 <code>preserve_temp_files=True</code>）</li>
+                <li>
+                  <strong>为什么创建新事件循环？</strong>因为⑨在多线程中调用
+                  <code>process_file</code>，每个线程需要独立的事件循环
+                </li>
+                <li>
+                  <strong><code>thread_id</code> 用于临时文件名：</strong
+                  >避免多线程同时写同一个临时文件导致冲突
+                </li>
+                <li>
+                  <strong>临时文件清理：</strong>请求文件和结果文件在使用后通过
+                  <code>os.remove()</code> 删除（除非
+                  <code>preserve_temp_files=True</code>）
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
               <strong>📍 它在流程中的位置：</strong>
-              被⑨ <code>process_directory_parallel</code> 通过线程池调用 → 内部调用⑦完成实际序列化
+              被⑨ <code>process_directory_parallel</code> 通过线程池调用 →
+              内部调用⑦完成实际序列化
             </div>
           </div>
 
@@ -1084,17 +2123,23 @@
 
           <!-- ═══════ ⑨ process_directory_parallel ═══════ -->
           <div class="card" id="f9">
-            <h2>⑨ <code>process_directory_parallel()</code> — 并行处理整个目录 <span class="badge badge-purple">PARALLEL</span></h2>
+            <h2>
+              ⑨ <code>process_directory_parallel()</code> — 并行处理整个目录
+              <span class="badge badge-purple">PARALLEL</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个函数做什么？（大白话）</h3>
             <p class="desc">
-              扫描目录下所有 JSON 文件，用<strong>线程池</strong>并行处理——每个线程负责一个文件，
+              扫描目录下所有 JSON
+              文件，用<strong>线程池</strong>并行处理——每个线程负责一个文件，
               线程内部用异步方式处理该文件的所有表格。这是两重并行的叠加。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 Python — 关键代码</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 Python — 关键代码</span>
+              </div>
               <pre><span class="k">def</span> <span class="nf">process_directory_parallel</span>(<span class="bp">self</span>, input_dir: Path, max_workers: <span class="nb">int</span> = <span class="mi">5</span>):
     json_files = <span class="nb">list</span>(input_dir.glob(<span class="s">"*.json"</span>))
 
@@ -1121,19 +2166,35 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong>两层并行：</strong>
+                <li>
+                  <strong>两层并行：</strong>
                   <ul>
-                    <li><strong>外层（线程池）：</strong>5个线程同时处理5个不同的 JSON 文件</li>
-                    <li><strong>内层（异步）：</strong>每个线程内部对文件中的多张表异步并发请求 LLM</li>
+                    <li>
+                      <strong>外层（线程池）：</strong>5个线程同时处理5个不同的
+                      JSON 文件
+                    </li>
+                    <li>
+                      <strong>内层（异步）：</strong
+                      >每个线程内部对文件中的多张表异步并发请求 LLM
+                    </li>
                   </ul>
-                  比如 3 个文件各含 4 张表 = 最多 5×4 = 20 个并发 API 请求</li>
-                <li><strong><code>process_messages()</code> 轮询：</strong>每 0.1 秒检查一次消息队列，确保不丢失日志输出</li>
-                <li><strong><code>add_done_callback</code>：</strong>每当一个 future 完成，自动更新 tqdm 进度条，不需要手动等待</li>
+                  比如 3 个文件各含 4 张表 = 最多 5×4 = 20 个并发 API 请求
+                </li>
+                <li>
+                  <strong><code>process_messages()</code> 轮询：</strong>每 0.1
+                  秒检查一次消息队列，确保不丢失日志输出
+                </li>
+                <li>
+                  <strong><code>add_done_callback</code>：</strong>每当一个
+                  future 完成，自动更新 tqdm 进度条，不需要手动等待
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
-              <strong>📍 它在流程中的位置：</strong> 最终入口函数，是整个模块的"启动按钮" → 提交任务到线程池 → 每个线程执行⑧
+              <strong>📍 它在流程中的位置：</strong>
+              最终入口函数，是整个模块的"启动按钮" → 提交任务到线程池 →
+              每个线程执行⑧
             </div>
           </div>
 
@@ -1141,18 +2202,25 @@
 
           <!-- ═══════ ⑩ TableSerialization ═══════ -->
           <div class="card" id="f10">
-            <h2>⑩ <code>TableSerialization()</code> — Prompt 与 Pydantic 模型 <span class="badge badge-red">SCHEMA</span></h2>
+            <h2>
+              ⑩ <code>TableSerialization()</code> — Prompt 与 Pydantic 模型
+              <span class="badge badge-red">SCHEMA</span>
+            </h2>
             <div class="accent-bar"></div>
 
             <h3>🤔 这个做什么？（大白话）</h3>
             <p class="desc">
-              它是<strong>纯静态配置类</strong>，定义了 LLM 的<strong>系统提示词</strong>（告诉 LLM 它要做什么）
-              和<strong>输出结构</strong>（规定 LLM 必须返回什么格式的 JSON）。这是整个模块的"规则书"。
+              它是<strong>纯静态配置类</strong>，定义了 LLM
+              的<strong>系统提示词</strong>（告诉 LLM 它要做什么）
+              和<strong>输出结构</strong>（规定 LLM 必须返回什么格式的
+              JSON）。这是整个模块的"规则书"。
             </p>
 
             <h3>📋 System Prompt — LLM 的"工作说明书"</h3>
             <div class="code-block">
-              <div class="code-header"><span class="lang">📝 System Prompt</span></div>
+              <div class="code-header">
+                <span class="lang">📝 System Prompt</span>
+              </div>
               <pre>system_prompt = (
     <span class="s">"You are a table serialization agent.</span><span class="se">\n</span><span class="s">"</span>
     <span class="s">"Your task is to create a set of contextually independent blocks"</span>
@@ -1163,13 +2231,16 @@
             </div>
 
             <p class="desc">
-              核心指令：<strong>"创建上下文独立的文本块"</strong>——这正是 RAG 场景的需求：
-              每个块单独被检索到时，读者不需要看原始 PDF 就能理解其含义。
+              核心指令：<strong>"创建上下文独立的文本块"</strong>——这正是 RAG
+              场景的需求： 每个块单独被检索到时，读者不需要看原始 PDF
+              就能理解其含义。
             </p>
 
             <h3>📐 Pydantic 模型结构</h3>
             <div class="code-block">
-              <div class="code-header"><span class="lang">🐍 数据结构定义</span></div>
+              <div class="code-header">
+                <span class="lang">🐍 数据结构定义</span>
+              </div>
               <pre><span class="k">class</span> <span class="nf">SerializedInformationBlock</span>(BaseModel):
     subject_core_entity: <span class="nb">str</span>      <span class="c1"># ═══ 主体实体（通常是行头） ═══</span>
     information_block: <span class="nb">str</span>       <span class="c1"># ═══ 完整上下文信息块 ═══</span>
@@ -1184,17 +2255,41 @@
             <div class="explain-box">
               <div class="explain-title">📖 图解说明</div>
               <ul>
-                <li><strong><code>SerializedInformationBlock</code>：</strong>一个"烘焙好的"文本单元。LLM 需要从表格中取一个行头作为 <code>subject_core_entity</code>，然后把该行所有列的值 + 单位 + 脚注 etc. 融合成一段流畅文本</li>
-                <li><strong>相邻行可以合并：</strong>如果表格中某行的数据离开相邻行无法理解，LLM 可以把多行信息合并到一个 block 中（参见 Field description 中的说明）</li>
-                <li><strong>"惩罚条款"：</strong><code>"SKIPPING ANY VALUABLE INFORMATION WILL BE HEAVILY PENALIZED!"</code> — 这行 caps 提示词确保 LLM 不会偷懒漏信息</li>
-                <li><strong><code>TableBlocksCollection</code>：</strong>顶层容器，汇总了所有行实体列表 + 表头列表 + 信息块列表，方便后续按实体名检索</li>
+                <li>
+                  <strong><code>SerializedInformationBlock</code>：</strong
+                  >一个"烘焙好的"文本单元。LLM 需要从表格中取一个行头作为
+                  <code>subject_core_entity</code>，然后把该行所有列的值 + 单位
+                  + 脚注 etc. 融合成一段流畅文本
+                </li>
+                <li>
+                  <strong>相邻行可以合并：</strong
+                  >如果表格中某行的数据离开相邻行无法理解，LLM
+                  可以把多行信息合并到一个 block 中（参见 Field description
+                  中的说明）
+                </li>
+                <li>
+                  <strong>"惩罚条款"：</strong
+                  ><code
+                    >"SKIPPING ANY VALUABLE INFORMATION WILL BE HEAVILY
+                    PENALIZED!"</code
+                  >
+                  — 这行 caps 提示词确保 LLM 不会偷懒漏信息
+                </li>
+                <li>
+                  <strong><code>TableBlocksCollection</code>：</strong
+                  >顶层容器，汇总了所有行实体列表 + 表头列表 +
+                  信息块列表，方便后续按实体名检索
+                </li>
               </ul>
             </div>
 
             <div class="highlight">
               <strong>📍 它在流程中的位置：</strong>
-              被④ <code>_send_serialization_request</code> 引用其 <code>system_prompt</code> 和 <code>TableBlocksCollection</code> schema；
-              被⑦ <code>async_serialize_tables</code> 同样引用。是整个序列化逻辑的"宪法"。
+              被④ <code>_send_serialization_request</code> 引用其
+              <code>system_prompt</code> 和
+              <code>TableBlocksCollection</code> schema； 被⑦
+              <code>async_serialize_tables</code>
+              同样引用。是整个序列化逻辑的"宪法"。
             </div>
           </div>
 
@@ -1202,14 +2297,19 @@
 
           <!-- ═══════ 总结：完整数据流 ═══════ -->
           <div class="card" id="summary">
-            <h2>🌊 完整数据流一览 <span class="badge badge-cyan">DATAFLOW</span></h2>
+            <h2>
+              🌊 完整数据流一览 <span class="badge badge-cyan">DATAFLOW</span>
+            </h2>
             <div class="accent-bar"></div>
             <p class="desc">
-              从 PDF 解析输出的 JSON 报告，到最终可在 RAG 中检索的上下文独立文本块——全流程串联。
+              从 PDF 解析输出的 JSON 报告，到最终可在 RAG
+              中检索的上下文独立文本块——全流程串联。
             </p>
 
             <div class="code-block">
-              <div class="code-header"><span class="lang">📐 端到端数据流</span></div>
+              <div class="code-header">
+                <span class="lang">📐 端到端数据流</span>
+              </div>
               <pre>
 📂 目录中的 JSON 文件
   │
@@ -1241,8 +2341,9 @@
 
             <div class="highlight">
               <strong>🔄 下游消费路径：</strong>
-              序列化后的 JSON → Chunking 模块按 <code>information_blocks</code> 切分 →
-              向量嵌入 → FAISS 索引 → RAG 检索时可精确匹配表格内容
+              序列化后的 JSON → Chunking 模块按
+              <code>information_blocks</code> 切分 → 向量嵌入 → FAISS 索引 → RAG
+              检索时可精确匹配表格内容
             </div>
 
             <div class="highlight tip">
@@ -1253,7 +2354,7 @@
               <a href="#f5">⑤ _serialize_table（理解调度流程）</a> →
               <a href="#f7">⑦ async_serialize_tables（理解异步并发）</a> →
               <a href="#f9">⑨ process_directory_parallel（理解入口全貌）</a>
-              <br/>理解这5个函数，整个模块你就掌握了80%！
+              <br />理解这5个函数，整个模块你就掌握了80%！
             </div>
           </div>
 
@@ -1299,7 +2400,10 @@
             </div>
           </div>
 
-          <footer>tables_serialization.py · TableSerializer + TableSerialization · OpenAI GPT-4o-mini · 讲解页面</footer>
+          <footer>
+            tables_serialization.py · TableSerializer + TableSerialization ·
+            OpenAI GPT-4o-mini · 讲解页面
+          </footer>
         </div>
       </div>
     </div>
