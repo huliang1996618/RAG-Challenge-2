@@ -54,21 +54,36 @@ class VectorDBIngestor:
         self.llm = self._set_up_llm()
 
     def _set_up_llm(self):
+        """初始化千问 DashScope 客户端（兼容 OpenAI SDK，仅需修改 base_url）"""
         load_dotenv()
+        api_key = os.getenv("DASHSCOPE_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "未找到 DASHSCOPE_API_KEY 环境变量！\n"
+                "请在 .env 文件或系统环境变量中设置：DASHSCOPE_API_KEY=你的密钥"
+            )
         llm = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY"),
+            api_key=api_key,
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
             timeout=None,
             max_retries=2
         )
         return llm
 
     @retry(wait=wait_fixed(20), stop=stop_after_attempt(2))
-    def _get_embeddings(self, text: Union[str, List[str]], model: str = "text-embedding-3-large") -> List[float]:
+    def _get_embeddings(self, text: Union[str, List[str]], model: str = "text-embedding-v3") -> List[float]:
+        """
+        调用千问 text-embedding-v3 获取文本嵌入向量。
+        
+        注意：千问 v3 为 3072 维，v1/v2 为 1536 维。
+        DashScope embedding API 兼容 OpenAI SDK 调用方式。
+        """
         if isinstance(text, str) and not text.strip():
-            raise ValueError("Input text cannot be an empty string.")
+            raise ValueError("输入文本不能为空字符串。")
         
         if isinstance(text, list):
-            text_chunks = [text[i:i + 1024] for i in range(0, len(text), 1024)]
+            # 千问 embedding API 单次最多 2048 条
+            text_chunks = [text[i:i + 2048] for i in range(0, len(text), 2048)]
         else:
             text_chunks = [text]
 

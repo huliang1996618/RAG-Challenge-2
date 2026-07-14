@@ -367,8 +367,79 @@ class BaseGeminiProcessor:
             raise Exception(f"API request failed after retries: {str(e)}")
 
 
+class BaseDashscopeProcessor:
+    """通义千问 DashScope Chat API 处理器（兼容 OpenAI SDK，仅 base_url 不同）"""
+
+    def __init__(self):
+        self.llm = self.set_up_llm()
+        self.default_model = "qwen-plus"  # 平衡型；可选 qwen-max / qwen-turbo
+
+    def set_up_llm(self):
+        """初始化千问 DashScope 客户端"""
+        load_dotenv()
+        api_key = os.getenv("DASHSCOPE_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "未找到 DASHSCOPE_API_KEY 环境变量！\n"
+                "请在 .env 文件或系统环境变量中设置：DASHSCOPE_API_KEY=你的密钥"
+            )
+        llm = OpenAI(
+            api_key=api_key,
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            timeout=None,
+            max_retries=2,
+        )
+        return llm
+
+    def send_message(
+        self,
+        model=None,
+        temperature=0.3,
+        seed=None,
+        system_content="你是一个有用的助手。",
+        human_content="你好！",
+        is_structured=False,
+        response_format=None,
+    ):
+        """
+        调用千问 Chat API 发送消息。
+        千问支持 OpenAI 兼容的 structured output（response_format）。
+        """
+        if model is None:
+            model = self.default_model
+
+        params = {
+            "model": model,
+            "seed": seed,
+            "messages": [
+                {"role": "system", "content": system_content},
+                {"role": "user", "content": human_content},
+            ],
+        }
+
+        # 千问所有模型都支持 temperature
+        params["temperature"] = temperature
+
+        if not is_structured:
+            completion = self.llm.chat.completions.create(**params)
+            content = completion.choices[0].message.content
+        else:
+            params["response_format"] = response_format
+            completion = self.llm.beta.chat.completions.parse(**params)
+            response = completion.choices[0].message.parsed
+            content = response.dict()
+
+        self.response_data = {
+            "model": completion.model,
+            "input_tokens": completion.usage.prompt_tokens,
+            "output_tokens": completion.usage.completion_tokens,
+        }
+        print(self.response_data)
+        return content
+
+
 class APIProcessor:
-    def __init__(self, provider: Literal["openai", "ibm", "gemini"] ="openai"):
+    def __init__(self, provider: Literal["openai", "ibm", "gemini", "dashscope"] = "dashscope"):
         self.provider = provider.lower()
         if self.provider == "openai":
             self.processor = BaseOpenaiProcessor()
@@ -376,6 +447,10 @@ class APIProcessor:
             self.processor = BaseIBMAPIProcessor()
         elif self.provider == "gemini":
             self.processor = BaseGeminiProcessor()
+        elif self.provider == "dashscope":
+            self.processor = BaseDashscopeProcessor()
+        else:
+            raise ValueError(f"不支持的 API provider: {provider}")
 
     def send_message(
         self,

@@ -57,8 +57,8 @@ class RunConfig:
     pipeline_details: str = ""
     submission_file: bool = True
     full_context: bool = False
-    api_provider: str = "openai"
-    answering_model: str = "gpt-4o-mini-2024-07-18" #or "gpt-4o-2024-08-06"
+    api_provider: str = "dashscope"
+    answering_model: str = "qwen-plus"  # 或 "qwen-max" / "qwen-turbo"
     config_suffix: str = ""
 
 class Pipeline:
@@ -432,7 +432,20 @@ gemini_thinking_config_big_context = RunConfig(
     config_suffix="_gemini_thinking_bc"
 )
 
+base_qwen_config = RunConfig(
+    use_serialized_tables=False,
+    parent_document_retrieval=False,
+    llm_reranking=False,
+    parallel_requests=5,  # 千问并发限制较小，建议保守设置
+    submission_name="中芯国际知识库 v1.0",
+    pipeline_details="Docling PDF解析 + 千问 text-embedding-v3 索引 + 千问 qwen-plus 生成; 中文股票研究场景",
+    api_provider="dashscope",
+    answering_model="qwen-plus",
+    config_suffix="_base_qwen",
+)
+
 configs = {"base": base_config,
+           "base_qwen": base_qwen_config,
            "pdr": parent_document_retrieval_config,
            "max": max_config, 
            "max_no_ser_tab": max_no_ser_tab_config,
